@@ -183,7 +183,101 @@ export const useAuth = () => {
       return { success: true };
     }
 
-    return { success: false, error: 'Invalid Access Key' };
+        return { success: false, error: 'Invalid Access Key' };
+  };
+
+  const signInWithUsername = async (username: string, password: string) => {
+    // MOCK AUTH IMPLEMENTATION
+    // Check local storage for registered users
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const foundUser = users.find((u: any) => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+
+    if (foundUser) {
+      // Auto-verify if not verified (since we are removing email verification step for ease)
+      if (!foundUser.verified) {
+         foundUser.verified = true;
+         // Update users array
+         const userIndex = users.findIndex((u: any) => u.id === foundUser.id);
+         users[userIndex] = foundUser;
+         localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      }
+
+      const userProfile: UserProfile = {
+        id: foundUser.id,
+        email: foundUser.email,
+        username: foundUser.username,
+        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${foundUser.username}`,
+        kill_count: foundUser.kill_count || 0,
+        verified: true,
+        last_seen: new Date().toISOString()
+      };
+      localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+      setUser(userProfile);
+      return { data: { user: userProfile }, error: null };
+    }
+
+    return { data: null, error: { message: 'Invalid username or password' } };
+  };
+
+  const signUpWithUsername = async (username: string, password: string) => {
+    // MOCK AUTH IMPLEMENTATION
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    
+    if (users.find((u: any) => u.username.toLowerCase() === username.toLowerCase())) {
+      return { data: null, error: { message: 'Username already taken. Please choose another.' } };
+    }
+
+    const newUser = {
+      id: `user-${Date.now()}`,
+      email: `${username.toLowerCase().replace(/\s+/g, '.')}@nexus.net`, // Generate dummy email
+      password, // In a real app, NEVER store plain text passwords
+      username,
+      verified: true, // Auto verify for seamlessness
+      kill_count: 0
+    };
+
+    users.push(newUser);
+    localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+
+    // Auto login
+    const userProfile: UserProfile = {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${newUser.username}`,
+        kill_count: 0,
+        verified: true,
+        last_seen: new Date().toISOString()
+    };
+    localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+    setUser(userProfile);
+
+    return { data: { user: userProfile }, error: null };
+  };
+
+  const verifyUser = (email: string) => {
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const userIndex = users.findIndex((u: any) => u.email === email);
+    
+    if (userIndex >= 0) {
+      users[userIndex].verified = true;
+      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      
+      // Auto login after verification
+      const user = users[userIndex];
+      const userProfile: UserProfile = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`,
+        kill_count: 0,
+        verified: true
+      };
+      localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+      setUser(userProfile);
+      return true;
+    }
+    return false;
   };
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -249,31 +343,6 @@ export const useAuth = () => {
     return { data: { user: { ...newUser, kill_count: 0 } }, error: null };
   };
 
-  const verifyUser = (email: string) => {
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.email === email);
-    
-    if (userIndex >= 0) {
-      users[userIndex].verified = true;
-      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
-      
-      // Auto login after verification
-      const user = users[userIndex];
-      const userProfile: UserProfile = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`,
-        kill_count: 0,
-        verified: true
-      };
-      localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
-      setUser(userProfile);
-      return true;
-    }
-    return false;
-  };
-
   const signOut = async () => {
     localStorage.removeItem('nexus_dev_session');
     localStorage.removeItem('nexus_user_session');
@@ -310,8 +379,8 @@ export const useAuth = () => {
     user,
     loading,
     signInWithDevKey,
-    signInWithEmail,
-    signUpWithEmail,
+    signInWithUsername,
+    signUpWithUsername,
     signOut,
     updateUsername,
     verifyUser

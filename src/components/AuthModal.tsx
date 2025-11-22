@@ -11,10 +11,9 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }) => {
-  const { signInWithDevKey, signInWithEmail, signUpWithEmail } = useAuth();
+  const { signInWithDevKey, signInWithUsername, signUpWithUsername } = useAuth();
   const { addMessage } = useStore();
   const [devKey, setDevKey] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -41,10 +40,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
     }
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const { error } = await signInWithEmail(email, password);
+    const { error } = await signInWithUsername(username, password);
     if (error) {
       setError(error.message);
     } else {
@@ -54,11 +53,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
     }
   };
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessMsg('');
-    const { error } = await signUpWithEmail(email, password, username);
+    
+    if (username.length < 3) {
+        setError('Username must be at least 3 characters');
+        return;
+    }
+
+    const { error } = await signUpWithUsername(username, password);
     if (error) {
       setError(error.message);
     } else {
@@ -73,11 +78,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
         type: 'system'
       });
 
-      setSuccessMsg('Account created! Verification email sent.');
-      // Redirect to simulated email after a short delay
+      setSuccessMsg('Identity established. Initializing neural link...');
+      // Redirect to home after a short delay
       setTimeout(() => {
         onClose();
-        window.location.href = `/verify-email-simulation?email=${encodeURIComponent(email)}`;
+        window.location.href = '/';
       }, 1500);
     }
   };
@@ -157,35 +162,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
                 </div>
               </form>
             ) : (
-              <form onSubmit={mode === 'login' ? handleEmailLogin : handleEmailSignUp} className="space-y-4">
+              <form onSubmit={mode === 'login' ? handleLogin : handleSignUp} className="space-y-4">
                 
-                {mode === 'signup' && (
-                  <div>
-                    <label className="block text-xs font-mono text-[#00ffd5] mb-2">USERNAME</label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="w-full bg-black/50 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:border-[#00ffd5] focus:outline-none font-mono"
-                        placeholder="CHOOSE ALIAS..."
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div>
-                  <label className="block text-xs font-mono text-[#00ffd5] mb-2">EMAIL ADDRESS</label>
+                  <label className="block text-xs font-mono text-[#00ffd5] mb-2">USERNAME</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
                     <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="w-full bg-black/50 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:border-[#00ffd5] focus:outline-none font-mono"
-                      placeholder="ENTER EMAIL..."
+                      placeholder={mode === 'login' ? "ENTER USERNAME..." : "CHOOSE ALIAS..."}
                       required
                     />
                   </div>
