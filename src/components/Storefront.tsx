@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Tag, Star, Zap, Code, Cpu, Gamepad2, LayoutGrid } from 'lucide-react';
-import { GAMES, GENRES } from '../data/games';
+import { GENRES } from '../data/games';
+import { useStore } from '../store';
 import GameCardHolographic from './GameCardHolographic';
 import GameDetailModal from './GameDetailModal';
 
 const Storefront: React.FC = () => {
+  const games = useStore((state) => state.games);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'nvious' | 'ai' | 'dev'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
-  const filteredGames = GAMES.filter(game => {
+  const filteredGames = games.filter(game => {
     const matchesCategory = selectedCategory === 'all' || game.category === selectedCategory;
     const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          game.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -19,7 +21,7 @@ const Storefront: React.FC = () => {
 
   // Rotate featured game daily
   const dayOfYear = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-  const featuredGame = GAMES[dayOfYear % GAMES.length];
+  const featuredGame = games[dayOfYear % games.length];
 
   return (
     <div className="min-h-screen text-white p-6 pb-24 relative overflow-hidden">
@@ -147,7 +149,7 @@ const Storefront: React.FC = () => {
 
       {/* Game Detail Modal */}
       <GameDetailModal 
-        game={GAMES.find(g => g.id === selectedGameId) || null} 
+        game={games.find(g => g.id === selectedGameId) || null} 
         isOpen={!!selectedGameId} 
         onClose={() => setSelectedGameId(null)} 
       />
