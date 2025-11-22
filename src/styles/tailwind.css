@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition duration-300;
+  }
+
+  .card {
+    @apply bg-gray-800 rounded-lg shadow-lg p-4 transition-transform transform hover:scale-105;
+  }
+
+  .header {
+    @apply bg-gray-900 text-white p-4 shadow-md;
+  }
+
+  .footer {
+    @apply bg-gray-900 text-gray-400 p-4;
+  }
+
+  .game-title {
+    @apply text-xl font-bold text-white;
+  }
+
+  .game-description {
+    @apply text-gray-300;
+  }
+
+  .filter {
+    @apply bg-gray-700 text-white rounded-lg p-2;
+  }
+
+  .search-bar {
+    @apply bg-gray-800 text-white rounded-lg p-2 w-full;
+  }
+}
+
+@layer utilities {
+  .bg-cyberpunk {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.7), 0 0 10px rgba(0, 255, 0, 0.5);
+  }
+}

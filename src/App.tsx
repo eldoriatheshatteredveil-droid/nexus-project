@@ -1,0 +1,39 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import Upload from './pages/Upload';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Contact from './pages/Contact';
+import About from './pages/About';
+import PlayGame from './pages/PlayGame';
+import Profile from './pages/Profile';
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Game Route - No Layout */}
+        <Route path="/play/:gameId" element={<PlayGame />} />
+
+        {/* Main Routes - With Layout */}
+        <Route path="*" element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/profile" element={<Profile />} />
+            </Routes>
+          </Layout>
+        } />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;

@@ -1,0 +1,150 @@
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { X, ShoppingCart, Play, Star, Download } from 'lucide-react';
+import { Game } from '../data/games';
+import { useStore } from '../store';
+
+interface GameDetailModalProps {
+  game: Game | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose }) => {
+  const addToCart = useStore((state) => state.addToCart);
+  const incrementDownloads = useStore((state) => state.incrementDownloads);
+  const navigate = useNavigate();
+
+  if (!isOpen || !game) return null;
+
+  const isPlayable = game.id === 'nvious-snake' || game.id === 'nvious-cyber-guess' || game.id === 'nvious-20-questions' || game.id === 'nexus-pong' || game.id === 'nexus-breakout' || game.id === 'void-vanguard';
+
+  const handlePlayClick = () => {
+    incrementDownloads(game.id);
+    navigate(`/play/${game.id}`);
+    onClose();
+  };
+
+  const handleDownloadClick = () => {
+    incrementDownloads(game.id);
+    // Simulate download
+    const link = document.createElement('a');
+    link.href = '#'; // In a real app, this would be the game file URL
+    link.download = `${game.slug}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          />
+          
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="relative w-full max-w-4xl bg-[#0a0a0a] border border-[#00ffd5]/30 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,255,213,0.1)] z-10 max-h-[90vh] flex flex-col"
+          >
+            {/* Header / Close Button */}
+            <div className="absolute top-4 right-4 z-20">
+              <button
+                onClick={handleClose}
+                className="p-2 rounded-full bg-black/50 hover:bg-[#00ffd5]/20 text-white hover:text-[#00ffd5] transition-colors border border-white/10 hover:border-[#00ffd5]/50"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
+              {/* Left Column: Media / Game Area */}
+              <div className="w-full md:w-2/3 bg-black relative min-h-[300px] md:min-h-full flex items-center justify-center border-b md:border-b-0 md:border-r border-[#00ffd5]/20">
+                <div className="relative w-full h-full">
+                  <img 
+                    src={game.cover} 
+                    alt={game.title} 
+                    className="w-full h-full object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+                  
+                  {isPlayable && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <button
+                        onClick={handlePlayClick}
+                        className="group relative px-8 py-4 bg-[#00ffd5] text-black font-bold text-xl rounded-full overflow-hidden hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,255,213,0.5)]"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          <Play fill="currentColor" /> PLAY NOW
+                        </span>
+                        <div className="absolute inset-0 bg-white/50 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Details */}
+              <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 bg-[#0a0a0a]">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-1 text-xs font-bold bg-[#00ffd5]/10 text-[#00ffd5] rounded border border-[#00ffd5]/20">
+                      {game.category.toUpperCase()}
+                    </span>
+                    {game.tags.map(tag => (
+                      <span key={tag} className="px-2 py-1 text-xs text-gray-400 border border-white/10 rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h2 className="text-3xl font-bold text-white mb-2 font-orbitron">{game.title}</h2>
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Download size={16} />
+                      <span>{game.downloads.toLocaleString()} downloads</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="prose prose-invert text-gray-300 text-sm flex-grow">
+                  <p>{game.description}</p>
+                </div>
+
+                <div className="mt-auto space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-gray-400">Price</span>
+                    <span className="text-2xl font-bold text-[#00ffd5]">
+                      {game.price === 0 ? 'FREE' : `$${game.price}`}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handleDownloadClick}
+                    className="w-full py-3 bg-[#00ffd5] text-black font-bold rounded hover:bg-white transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <Download size={20} className="group-hover:animate-bounce" />
+                    DOWNLOAD NOW
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default GameDetailModal;
