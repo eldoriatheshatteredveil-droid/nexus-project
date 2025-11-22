@@ -21,23 +21,36 @@ export const useAuth = () => {
   const { setKillCount, setXp, setPlayTime } = useStore();
 
   useEffect(() => {
-    // Check for dev session in local storage
+    // Check for dev/tester session in local storage
     const devSession = localStorage.getItem('nexus_dev_session');
     if (devSession) {
       const devUser = JSON.parse(devSession);
       setUser(devUser);
       
       if (devUser.is_dev) {
-        setKillCount(devUser.kill_count || 99999); // Devs get max stats
-        setXp(157680000); // Level 50
-        setPlayTime(0); // Reset time for dev
+        setKillCount(devUser.kill_count || 99999);
+        setXp(157680000);
+        setPlayTime(0);
+      } else if (devUser.is_tester) {
+        setKillCount(0);
+        setXp(0);
+        setPlayTime(0);
       }
       
       setLoading(false);
       return;
     }
 
-    // Check Supabase session
+    // Check for standard user session in local storage (Mock Auth)
+    const userSession = localStorage.getItem('nexus_user_session');
+    if (userSession) {
+      const standardUser = JSON.parse(userSession);
+      setUser(standardUser);
+      setLoading(false);
+      return;
+    }
+
+    // Check Supabase session (Fallback)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         mapSupabaseUser(session.user);
@@ -50,7 +63,7 @@ export const useAuth = () => {
       if (session?.user) {
         mapSupabaseUser(session.user);
       } else {
-        if (!localStorage.getItem('nexus_dev_session')) {
+        if (!localStorage.getItem('nexus_dev_session') && !localStorage.getItem('nexus_user_session')) {
           setUser(null);
         }
       }
@@ -114,28 +127,75 @@ export const useAuth = () => {
   };
 
   const signInWithEmail = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
+    // MOCK AUTH IMPLEMENTATION
+    // Check local storage for registered users
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const foundUser = users.find((u: any) => u.email === email && u.password === password);
+
+    if (foundUser) {
+      const userProfile: UserProfile = {
+        id: foundUser.id,
+        email: foundUser.email,
+        username: foundUser.username,
+        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${foundUser.username}`,
+        kill_count: 0
+      };
+      localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+      setUser(userProfile);
+      return { data: { user: userProfile }, error: null };
+    }
+
+    // Fallback to Supabase (will likely fail if not configured)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (!error && data.user) {
+        return { data, error };
+      }
+    } catch (e) {
+      // Ignore supabase error if we are in mock mode
+    }
+
+    return { data: null, error: { message: 'Invalid email or password (Mock Auth)' } };
   };
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
+    // MOCK AUTH IMPLEMENTATION
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    
+    if (users.find((u: any) => u.email === email)) {
+      return { data: null, error: { message: 'User already exists' } };
+    }
+
+    const newUser = {
+      id: `user-${Date.now()}`,
       email,
-      password,
-      options: {
-        data: {
-          full_name: username,
-        },
-      },
-    });
-    return { data, error };
+      password, // In a real app, NEVER store plain text passwords
+      username
+    };
+
+    users.push(newUser);
+    localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+
+    // Auto login after signup
+    const userProfile: UserProfile = {
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${newUser.username}`,
+      kill_count: 0
+    };
+    localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+    setUser(userProfile);
+
+    return { data: { user: userProfile }, error: null };
   };
 
   const signOut = async () => {
     localStorage.removeItem('nexus_dev_session');
+    localStorage.removeItem('nexus_user_session');
     await supabase.auth.signOut();
     setUser(null);
     setKillCount(0);
@@ -150,14 +210,18 @@ export const useAuth = () => {
     const updatedUser = { ...user, username: newUsername };
     setUser(updatedUser);
 
-    if (user.is_dev) {
+    if (user.is_dev || user.is_tester) {
       localStorage.setItem('nexus_dev_session', JSON.stringify(updatedUser));
     } else {
-      // Attempt to update Supabase user metadata
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: newUsername }
-      });
-      if (error) console.error('Error updating profile:', error);
+      localStorage.setItem('nexus_user_session', JSON.stringify(updatedUser));
+      
+      // Update in registered users list too
+      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+      const userIndex = users.findIndex((u: any) => u.id === user.id);
+      if (userIndex >= 0) {
+        users[userIndex].username = newUsername;
+        localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      }
     }
   };
 
