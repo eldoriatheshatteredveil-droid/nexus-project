@@ -7,14 +7,32 @@ interface CartItem {
   quantity: number;
 }
 
+export interface Message {
+  id: string;
+  sender: string;
+  subject: string;
+  content: string;
+  date: string;
+  read: boolean;
+  type: 'system' | 'admin' | 'user';
+}
+
 interface StoreState {
   games: Game[];
   cart: CartItem[];
+  messages: Message[];
   addGame: (game: Game) => void;
+  removeGame: (gameId: string) => void;
   addToCart: (game: Game) => void;
   removeFromCart: (gameId: string) => void;
   clearCart: () => void;
   incrementDownloads: (gameId: string) => void;
+  
+  // Messaging
+  addMessage: (message: Message) => void;
+  markMessageRead: (id: string) => void;
+  deleteMessage: (id: string) => void;
+
   killCount: number;
   incrementKillCount: (amount?: number) => void;
   setKillCount: (count: number) => void;
@@ -38,6 +56,7 @@ export const useStore = create<StoreState>()(
     (set) => ({
       games: GAMES,
       cart: [],
+      messages: [],
       killCount: 0,
       selectedOrbId: 'default',
       xp: 0,
@@ -45,6 +64,8 @@ export const useStore = create<StoreState>()(
       selectedAvatarId: '',
 
       addGame: (game) => set((state) => ({ games: [game, ...state.games] })),
+      removeGame: (gameId) => set((state) => ({ games: state.games.filter(g => g.id !== gameId) })),
+      
       addToCart: (game) => set((state) => {
         const existingItem = state.cart.find(item => item.game.id === game.id);
         if (existingItem) {
@@ -67,6 +88,16 @@ export const useStore = create<StoreState>()(
           game.id === gameId ? { ...game, downloads: game.downloads + 1 } : game
         ),
       })),
+
+      // Messaging Actions
+      addMessage: (message) => set((state) => ({ messages: [message, ...state.messages] })),
+      markMessageRead: (id) => set((state) => ({
+        messages: state.messages.map(m => m.id === id ? { ...m, read: true } : m)
+      })),
+      deleteMessage: (id) => set((state) => ({
+        messages: state.messages.filter(m => m.id !== id)
+      })),
+
       incrementKillCount: (amount = 1) => set((state) => ({ killCount: state.killCount + amount })),
       setKillCount: (count) => set({ killCount: count }),
 
@@ -88,11 +119,13 @@ export const useStore = create<StoreState>()(
       partialize: (state) => ({ 
         // Only persist these fields
         cart: state.cart,
+        messages: state.messages,
         killCount: state.killCount,
         selectedOrbId: state.selectedOrbId,
         xp: state.xp,
         playTime: state.playTime,
-        selectedAvatarId: state.selectedAvatarId
+        selectedAvatarId: state.selectedAvatarId,
+        games: state.games // Persist games so uploads stick around in local demo
       }),
     }
   )

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Key, Terminal, User, Lock, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useStore } from '../store';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const { signInWithDevKey, signInWithEmail, signUpWithEmail } = useAuth();
+  const { addMessage } = useStore();
   const [devKey, setDevKey] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,6 +52,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (error) {
       setError(error.message);
     } else {
+      // Send Welcome Message
+      addMessage({
+        id: `welcome-${Date.now()}`,
+        sender: 'NEXUS_SYSTEM',
+        subject: 'WELCOME TO THE NEXUS',
+        content: `Greetings, ${username}.\n\nWelcome to the Nexus Digital Frontier. Your neural link has been established successfully.\n\nAs a registered operative, you now have access to:\n- Upload Protocol: Deploy your own creations to the network.\n- Global Chat: Communicate with other operatives.\n- Profile Tracking: Monitor your XP and stats.\n\nExplore the archives, play games, and contribute to the system.\n\nEnd of transmission.`,
+        date: new Date().toISOString(),
+        read: false,
+        type: 'system'
+      });
+
       setSuccessMsg('Account created! Please check your email to confirm.');
       // Optional: Switch to login mode or close modal
     }

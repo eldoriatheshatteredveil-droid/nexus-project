@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, ShoppingCart, Play, Star, Download } from 'lucide-react';
+import { X, ShoppingCart, Play, Star, Download, Trash2, MessageSquare, Send, ShieldAlert } from 'lucide-react';
 import { Game } from '../data/games';
 import { useStore } from '../store';
+import { useAuth } from '../hooks/useAuth';
 
 interface GameDetailModalProps {
   game: Game | null;
@@ -14,7 +15,14 @@ interface GameDetailModalProps {
 const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose }) => {
   const addToCart = useStore((state) => state.addToCart);
   const incrementDownloads = useStore((state) => state.incrementDownloads);
+  const removeGame = useStore((state) => state.removeGame);
+  const addMessage = useStore((state) => state.addMessage);
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageContent, setMessageContent] = useState('');
 
   if (!isOpen || !game) return null;
 
@@ -37,7 +45,35 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
     document.body.removeChild(link);
   };
 
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+      removeGame(game.id);
+      onClose();
+    }
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!game.uploaderId) return;
+
+    addMessage({
+      id: `msg-${Date.now()}`,
+      sender: 'NEXUS_ADMIN',
+      subject: messageSubject,
+      content: messageContent,
+      date: new Date().toISOString(),
+      read: false,
+      type: 'admin'
+    });
+
+    setShowMessageForm(false);
+    setMessageSubject('');
+    setMessageContent('');
+    alert('Transmission sent to user.');
+  };
+
   const handleClose = () => {
+    setShowMessageForm(false);
     onClose();
   };
 
@@ -116,11 +152,76 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                       <span>{game.downloads.toLocaleString()} downloads</span>
                     </div>
                   </div>
+                  {game.uploaderName && (
+                    <div className="mt-2 text-xs text-gray-500 font-mono">
+                      UPLOADED BY: <span className="text-[#00ffd5]">{game.uploaderName}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="prose prose-invert text-gray-300 text-sm flex-grow">
                   <p>{game.description}</p>
                 </div>
+
+                {/* Admin Controls */}
+                {user?.is_dev && (
+                  <div className="p-4 border border-red-500/30 bg-red-500/5 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 text-red-500 text-xs font-bold uppercase tracking-wider">
+                      <ShieldAlert size={14} /> Admin Controls
+                    </div>
+                    
+                    {showMessageForm ? (
+                      <form onSubmit={handleSendMessage} className="space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Subject..."
+                          value={messageSubject}
+                          onChange={(e) => setMessageSubject(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-[#00ffd5] outline-none"
+                          required
+                        />
+                        <textarea
+                          placeholder="Message content..."
+                          value={messageContent}
+                          onChange={(e) => setMessageContent(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-[#00ffd5] outline-none resize-none"
+                          rows={3}
+                          required
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowMessageForm(false)}
+                            className="flex-1 py-1 bg-gray-800 text-white text-xs rounded hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="flex-1 py-1 bg-[#00ffd5] text-black text-xs font-bold rounded hover:bg-[#00ffd5]/80"
+                          >
+                            Send
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowMessageForm(true)}
+                          className="flex-1 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 text-xs font-bold flex items-center justify-center gap-2"
+                        >
+                          <MessageSquare size={14} /> MESSAGE
+                        </button>
+                        <button
+                          onClick={handleDelete}
+                          className="flex-1 py-2 bg-red-500/20 text-red-500 border border-red-500/30 rounded hover:bg-red-500/30 text-xs font-bold flex items-center justify-center gap-2"
+                        >
+                          <Trash2 size={14} /> DELETE
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-auto space-y-4">
                   <div className="flex items-center justify-between mb-4">

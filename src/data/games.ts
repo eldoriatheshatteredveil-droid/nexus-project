@@ -10,6 +10,8 @@ export interface Game {
   rating: number;
   downloads: number;
   category: 'ai' | 'dev' | 'nvious';
+  uploaderId?: string;
+  uploaderName?: string;
 }
 
 export const GENRES = [

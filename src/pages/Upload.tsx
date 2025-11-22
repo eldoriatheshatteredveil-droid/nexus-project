@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, AlignLeft, Save, Zap } from 'lucide-react';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
+import { useAuth } from '../hooks/useAuth';
 import { Game, GENRES } from '../data/games';
 import GameCardHolographic from '../components/GameCardHolographic';
 import CustomDropdown from '../components/CustomDropdown';
@@ -11,6 +12,7 @@ import CustomDropdown from '../components/CustomDropdown';
 const Upload: React.FC = () => {
   const { playHover, playClick, playSwitch } = useCyberSound();
   const addGame = useStore((state) => state.addGame);
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   const [dragActive, setDragActive] = useState(false);
@@ -20,6 +22,12 @@ const Upload: React.FC = () => {
   const [category, setCategory] = useState<'ai' | 'dev'>('ai');
   const [genre, setGenre] = useState(GENRES[0]);
   const [coverImage, setCoverImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -55,6 +63,8 @@ const Upload: React.FC = () => {
     e.preventDefault();
     playClick();
 
+    if (!user) return;
+
     const newGame: Game = {
       id: `game-${Date.now()}`,
       title: title || 'Untitled Project',
@@ -66,7 +76,9 @@ const Upload: React.FC = () => {
       tags: [genre, 'Indie', 'New Release'],
       rating: 0,
       downloads: 0,
-      category: category
+      category: category,
+      uploaderId: user.id,
+      uploaderName: user.username
     };
 
     addGame(newGame);
