@@ -256,24 +256,48 @@ export const useStore = create<StoreState>()(
         
         return state;
       },
-      partialize: (state) => ({  
-        // Only persist these fields
-        cart: state.cart,
-        messages: state.messages,
-        killCount: state.killCount,
-        selectedOrbId: state.selectedOrbId,
-        xp: state.xp,
-        playTime: state.playTime,
-        selectedAvatarId: state.selectedAvatarId,
-        games: state.games,
-        credits: state.credits,
-        inventory: state.inventory,
-        equippedItems: state.equippedItems,
-        faction: state.faction,
-        missions: state.missions,
-        highScores: state.highScores
-        // Don't persist isMusicPlaying, it should reset on reload
-      }),
+      partialize: (state) => {
+        if (!state.isAuthenticated) {
+          // If not authenticated, do not persist user stats
+          return {
+            cart: state.cart,
+            games: state.games,
+            // Reset stats to 0/default for non-auth users in storage
+            killCount: 0,
+            xp: 0,
+            playTime: 0,
+            credits: 0,
+            inventory: [],
+            equippedItems: [],
+            faction: null,
+            missions: DAILY_MISSIONS,
+            highScores: {},
+            messages: [],
+            selectedOrbId: 'default',
+            selectedAvatarId: ''
+          };
+        }
+        
+        return {  
+          // Only persist these fields
+          cart: state.cart,
+          messages: state.messages,
+          killCount: state.killCount,
+          selectedOrbId: state.selectedOrbId,
+          xp: state.xp,
+          playTime: state.playTime,
+          selectedAvatarId: state.selectedAvatarId,
+          games: state.games,
+          credits: state.credits,
+          inventory: state.inventory,
+          equippedItems: state.equippedItems,
+          faction: state.faction,
+          missions: state.missions,
+          highScores: state.highScores,
+          isAuthenticated: state.isAuthenticated
+          // Don't persist isMusicPlaying, it should reset on reload
+        };
+      },
     }
   )
 );
