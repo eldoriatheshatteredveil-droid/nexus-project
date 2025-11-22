@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
-import { Shield, Crosshair, Trophy, Cpu, LogOut, Clock, User, Activity, Settings, Grid, Zap, Lock, Unlock, Edit2, Check, X, AlertTriangle, Award, Star, Hexagon, Flag, Briefcase } from 'lucide-react';
+import { Shield, Crosshair, Trophy, Cpu, LogOut, Clock, User, Activity, Settings, Grid, Zap, Lock, Unlock, Edit2, Check, X, AlertTriangle, Award, Star, Hexagon, Flag, Briefcase, Users } from 'lucide-react';
 import { ORBS } from '../data/orbs';
 import { AVATARS, getLevelFromXP, getXPForLevel } from '../data/avatars';
 import { MARKET_ITEMS } from '../data/items';
@@ -11,7 +11,7 @@ import ProceduralAvatar from '../components/ProceduralAvatar';
 const Profile: React.FC = () => {
   const { user, signOut, updateUsername } = useAuth();
   const { killCount, selectedOrbId, xp, playTime, selectedAvatarId, setSelectedAvatarId, addXp, setKillCount, faction, addCredits, inventory, equipItem, unequipItem, isEquipped } = useStore();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'inventory' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'inventory' | 'settings' | 'network'>('overview');
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -227,6 +227,7 @@ const Profile: React.FC = () => {
           <TabButton id="collection" label="COLLECTION" icon={Grid} />
           <TabButton id="inventory" label="INVENTORY" icon={Briefcase} />
           <TabButton id="settings" label="SYSTEM" icon={Settings} />
+          {user.is_dev && <TabButton id="network" label="NETWORK" icon={Users} />}
         </div>
       </motion.div>
 
@@ -610,7 +611,8 @@ const Profile: React.FC = () => {
               <h3 className="text-white font-bold font-orbitron mb-6 flex items-center gap-2">
                 <Settings size={20} className="text-[#00ffd5]" />
                 ACCOUNT SETTINGS
-              </h3>
+              </h3
+              >
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-black/30 rounded-lg border border-gray-800">
@@ -668,6 +670,91 @@ const Profile: React.FC = () => {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {activeTab === 'network' && user.is_dev && (
+          <motion.div
+            key="network"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
+          >
+            <div className="bg-black/40 border border-[#ff66cc]/30 p-6 rounded-xl backdrop-blur-sm relative overflow-hidden">
+              <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-3xl bg-[#ff66cc]/10" />
+              
+              <div className="flex justify-between items-center mb-6 relative z-10">
+                <h3 className="text-white font-bold font-orbitron flex items-center gap-2">
+                  <Users size={20} className="text-[#ff66cc]" />
+                  ACTIVE NEURAL LINKS
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-mono text-green-500">LIVE MONITORING</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+                {(() => {
+                  // Fetch all users from local storage
+                  const registeredUsers = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+                  const devSession = localStorage.getItem('nexus_dev_session');
+                  
+                  let allUsers = [...registeredUsers];
+                  if (devSession) {
+                    const devUser = JSON.parse(devSession);
+                    // Avoid duplicates if dev is also in registered list (unlikely but possible)
+                    if (!allUsers.find((u: any) => u.id === devUser.id)) {
+                      allUsers.push(devUser);
+                    }
+                  }
+
+                  // Filter for "online" users (active in last 5 minutes)
+                  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+                  const onlineUsers = allUsers.filter((u: any) => {
+                    if (!u.last_seen) return false; // No timestamp = offline
+                    return new Date(u.last_seen) > fiveMinutesAgo;
+                  });
+
+                  if (onlineUsers.length === 0) {
+                    return (
+                      <div className="col-span-full text-center py-12 text-gray-500 font-mono">
+                        NO ACTIVE SIGNALS DETECTED
+                      </div>
+                    );
+                  }
+
+                  return onlineUsers.map((u: any) => (
+                    <div key={u.id} className="bg-black/60 border border-gray-800 p-4 rounded-lg flex items-center gap-4 hover:border-[#ff66cc]/50 transition-colors group">
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-lg bg-gray-900 overflow-hidden border border-gray-700 group-hover:border-[#ff66cc] transition-colors">
+                          <img 
+                            src={u.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.username}`} 
+                            alt={u.username}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-black rounded-full" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-white font-orbitron truncate">{u.username}</h4>
+                          {u.is_dev && <span className="text-[9px] bg-[#ff66cc]/20 text-[#ff66cc] px-1 rounded border border-[#ff66cc]/30">DEV</span>}
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono truncate">{u.email}</div>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-gray-400">
+                          <span>ID: {u.id.toString().slice(0, 6)}</span>
+                          <span className="text-gray-600">|</span>
+                          <span className="text-green-400">ONLINE</span>
+                        </div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

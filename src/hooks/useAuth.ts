@@ -11,6 +11,7 @@ export interface UserProfile {
   is_tester?: boolean;
   kill_count?: number;
   verified?: boolean;
+  last_seen?: string; // ISO Date string
 }
 
 const DEV_KEY = "1113199011 131990";
@@ -20,6 +21,52 @@ export const useAuth = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { setKillCount, setXp, setPlayTime, setIsAuthenticated } = useStore();
+
+  // Update presence (last_seen) periodically
+  useEffect(() => {
+    if (!user) return;
+
+    const updatePresence = () => {
+      const now = new Date().toISOString();
+      
+      // Update in local state
+      // setUser(prev => prev ? ({ ...prev, last_seen: now }) : null); // Avoid causing re-renders loop if not careful, but actually we don't need to update the state object for this, just the storage.
+
+      // Update in storage
+      if (user.is_dev || user.is_tester) {
+        // Dev/Tester session
+        const sessionKey = user.is_dev ? 'nexus_dev_session' : 'nexus_dev_session'; // logic in original code uses nexus_dev_session for both?
+        // Actually original code: localStorage.setItem('nexus_dev_session', JSON.stringify(devUser)); for both dev and tester.
+        const stored = localStorage.getItem('nexus_dev_session');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          parsed.last_seen = now;
+          localStorage.setItem('nexus_dev_session', JSON.stringify(parsed));
+        }
+      } else {
+        // Regular user session
+        const stored = localStorage.getItem('nexus_user_session');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          parsed.last_seen = now;
+          localStorage.setItem('nexus_user_session', JSON.stringify(parsed));
+        }
+
+        // Also update in registered users list
+        const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+        const userIndex = users.findIndex((u: any) => u.id === user.id);
+        if (userIndex >= 0) {
+          users[userIndex].last_seen = now;
+          localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+        }
+      }
+    };
+
+    updatePresence(); // Initial update
+    const interval = setInterval(updatePresence, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     setIsAuthenticated(!!user);
@@ -190,7 +237,7 @@ export const useAuth = () => {
     const newUser = {
       id: `user-${Date.now()}`,
       email,
-      password, // In a real app, NEVER store plain text passwords
+      password: // In a real app, NEVER store plain text passwords
       username,
       verified: false
     };
