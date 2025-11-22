@@ -150,18 +150,6 @@ const HeroWebGLBackground: React.FC = () => {
         <fog attach="fog" args={[theme.fog, 25, 65]} />
         <PixelGrid theme={theme} />
       </Canvas>
-
-      {/* Gradient blob overlays - Softer */}
-      <div className="pointer-events-none absolute -z-5 inset-0 mix-blend-soft-light">
-        <div 
-          className="absolute -left-[10%] top-20 w-[50vw] h-[50vw] rounded-full blur-[150px] opacity-10 animate-pulse transition-colors duration-1000" 
-          style={{ backgroundColor: theme.secondary }}
-        />
-        <div 
-          className="absolute right-0 bottom-0 w-[45vw] h-[45vw] rounded-full blur-[150px] opacity-10 animate-pulse transition-colors duration-1000" 
-          style={{ backgroundColor: theme.primary }}
-        />
-      </div>
     </div>
   );
 };
