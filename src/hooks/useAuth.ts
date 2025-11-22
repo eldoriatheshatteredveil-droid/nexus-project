@@ -149,7 +149,7 @@ export const useAuth = () => {
   const signInWithDevKey = (key: string) => {
     if (key === DEV_KEY) {
       const devUser: UserProfile = {
-        id: 'NVious A.i.',
+        id: 'Architect',
         email: 'dev@nexus.system',
         username: 'NEXUS',
         is_dev: true,
