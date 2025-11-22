@@ -34,6 +34,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
     const result = signInWithDevKey(devKey);
     if (result.success) {
       onClose();
+      // Force refresh to home page to trigger faction selection if needed
       window.location.href = '/';
     } else {
       setError(result.error || 'Access Denied');
@@ -48,6 +49,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }
       setError(error.message);
     } else {
       onClose();
+      // Force refresh to home page to trigger faction selection if needed
       window.location.href = '/';
     }
   };

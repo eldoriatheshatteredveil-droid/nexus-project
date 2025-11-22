@@ -35,15 +35,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
   const incrementPlayTime = useStore((state) => state.incrementPlayTime);
   const faction = useStore((state) => state.faction);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
   const { user } = useAuth();
 
-  // Check for faction selection
+  // Check for faction selection - Only for authenticated users who haven't chosen yet
   useEffect(() => {
-    if (!faction) {
+    if (isAuthenticated && !faction) {
       const timer = setTimeout(() => setIsFactionSelectorOpen(true), 1500);
       return () => clearTimeout(timer);
+    } else {
+      setIsFactionSelectorOpen(false);
     }
-  }, [faction]);
+  }, [faction, isAuthenticated]);
 
   // Terminal Toggle Key
   useEffect(() => {
