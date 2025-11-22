@@ -1,7 +1,100 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { useStore } from '../store';
 import Storefront from '../components/Storefront';
 import DigitalFrontierLogo from '../components/DigitalFrontierLogo';
 import SystemStatus from '../components/SystemStatus';
+
+const EqualizerBorder: React.FC = () => {
+  const isMusicPlaying = useStore((state) => state.isMusicPlaying);
+  const bars = Array.from({ length: 30 }); // Number of bars
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-visible">
+      {/* Top Equalizer */}
+      <div className="absolute -top-6 left-0 right-0 h-6 flex justify-center items-end gap-[2px] opacity-70">
+        {bars.map((_, i) => (
+          <motion.div
+            key={`top-${i}`}
+            className="w-1.5 bg-[#00ffd5] rounded-t-sm shadow-[0_0_5px_#00ffd5]"
+            animate={isMusicPlaying ? {
+              height: [4, Math.random() * 20 + 4, Math.random() * 10 + 4],
+              opacity: [0.4, 1, 0.4]
+            } : { height: 2, opacity: 0.1 }}
+            transition={{
+              duration: 0.4,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: i * 0.02,
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Bottom Equalizer */}
+      <div className="absolute -bottom-6 left-0 right-0 h-6 flex justify-center items-start gap-[2px] opacity-70">
+        {bars.map((_, i) => (
+          <motion.div
+            key={`bottom-${i}`}
+            className="w-1.5 bg-[#ff66cc] rounded-b-sm shadow-[0_0_5px_#ff66cc]"
+            animate={isMusicPlaying ? {
+              height: [4, Math.random() * 20 + 4, Math.random() * 10 + 4],
+              opacity: [0.4, 1, 0.4]
+            } : { height: 2, opacity: 0.1 }}
+            transition={{
+              duration: 0.4,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: i * 0.03, // Different delay for variety
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Left Side Equalizer (Vertical) */}
+      <div className="absolute top-0 -left-6 bottom-0 w-6 flex flex-col justify-center items-end gap-[2px] opacity-50 hidden md:flex">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <motion.div
+            key={`left-${i}`}
+            className="h-1.5 bg-[#00ffd5] rounded-l-sm"
+            animate={isMusicPlaying ? {
+              width: [4, Math.random() * 16 + 4, 4],
+              opacity: [0.3, 0.8, 0.3]
+            } : { width: 2, opacity: 0.1 }}
+            transition={{
+              duration: 0.5,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: i * 0.1,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Right Side Equalizer (Vertical) */}
+      <div className="absolute top-0 -right-6 bottom-0 w-6 flex flex-col justify-center items-start gap-[2px] opacity-50 hidden md:flex">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <motion.div
+            key={`right-${i}`}
+            className="h-1.5 bg-[#ff66cc] rounded-r-sm"
+            animate={isMusicPlaying ? {
+              width: [4, Math.random() * 16 + 4, 4],
+              opacity: [0.3, 0.8, 0.3]
+            } : { width: 2, opacity: 0.1 }}
+            transition={{
+              duration: 0.5,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: i * 0.1,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const Home: React.FC = () => {
   return (
@@ -42,6 +135,7 @@ const Home: React.FC = () => {
               </div>
               
               <div className="relative p-6 border border-primary/30 rounded-lg bg-black/40 backdrop-blur-sm max-w-3xl mx-auto shadow-[0_0_15px_rgba(0,255,213,0.1)] group hover:border-primary/60 transition-colors duration-300">
+                <EqualizerBorder />
                 {/* Corner accents */}
                 <div className="absolute -top-[1px] -left-[1px] w-3 h-3 border-t border-l border-primary" />
                 <div className="absolute -top-[1px] -right-[1px] w-3 h-3 border-t border-r border-primary" />
