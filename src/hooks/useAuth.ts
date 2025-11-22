@@ -113,14 +113,25 @@ export const useAuth = () => {
     return { success: false, error: 'Invalid Access Key' };
   };
 
-  const signInWithProvider = async (provider: 'google' | 'github') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: window.location.origin,
-      }
+  const signInWithEmail = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-    return { error };
+    return { data, error };
+  };
+
+  const signUpWithEmail = async (email: string, password: string, username: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: username,
+        },
+      },
+    });
+    return { data, error };
   };
 
   const signOut = async () => {
@@ -154,7 +165,8 @@ export const useAuth = () => {
     user,
     loading,
     signInWithDevKey,
-    signInWithProvider,
+    signInWithEmail,
+    signUpWithEmail,
     signOut,
     updateUsername
   };

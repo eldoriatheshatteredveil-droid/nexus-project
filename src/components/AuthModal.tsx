@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Github, Mail, Key, Terminal } from 'lucide-react';
+import { X, Mail, Key, Terminal, User, Lock, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
@@ -9,10 +9,15 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { signInWithProvider, signInWithDevKey } = useAuth();
+  const { signInWithDevKey, signInWithEmail, signUpWithEmail } = useAuth();
   const [devKey, setDevKey] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState<'user' | 'dev'>('user');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [mode, setMode] = useState<'login' | 'signup' | 'dev'>('login');
 
   const handleDevLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +30,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleProviderLogin = async (provider: 'google' | 'github') => {
-    const { error } = await signInWithProvider(provider);
-    if (error) setError(error.message);
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    const { error } = await signInWithEmail(email, password);
+    if (error) {
+      setError(error.message);
+    } else {
+      onClose();
+      window.location.href = '/';
+    }
+  };
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    const { error } = await signUpWithEmail(email, password, username);
+    if (error) {
+      setError(error.message);
+    } else {
+      setSuccessMsg('Account created! Please check your email to confirm.');
+      // Optional: Switch to login mode or close modal
+    }
   };
 
   return (
@@ -56,54 +81,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-[#00ffd5] font-orbitron mb-2">
-                {mode === 'user' ? 'IDENTIFY YOURSELF' : 'DEVELOPER ACCESS'}
+                {mode === 'dev' ? 'DEVELOPER ACCESS' : mode === 'signup' ? 'NEW USER REGISTRATION' : 'IDENTIFY YOURSELF'}
               </h2>
               <p className="text-gray-400 text-xs font-mono">
-                {mode === 'user' ? 'CONNECT TO THE NEXUS NETWORK' : 'ENTER ROOT ACCESS KEY'}
+                {mode === 'dev' ? 'ENTER ROOT ACCESS KEY' : mode === 'signup' ? 'CREATE YOUR DIGITAL IDENTITY' : 'CONNECT TO THE NEXUS NETWORK'}
               </p>
             </div>
 
-            {mode === 'user' ? (
-              <div className="space-y-4">
-                <button
-                  onClick={() => handleProviderLogin('github')}
-                  className="w-full py-3 px-4 bg-[#24292e] hover:bg-[#2f363d] text-white rounded-lg flex items-center justify-center gap-3 transition-all border border-transparent hover:border-gray-500"
-                >
-                  <Github size={20} />
-                  <span>Continue with GitHub</span>
-                </button>
-                
-                <button
-                  onClick={() => handleProviderLogin('google')}
-                  className="w-full py-3 px-4 bg-white hover:bg-gray-100 text-gray-900 rounded-lg flex items-center justify-center gap-3 transition-all"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" />
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-800"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-[#0a0a0f] px-2 text-gray-500">Or</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setMode('dev')}
-                  className="w-full py-3 px-4 bg-transparent border border-[#00ffd5]/30 text-[#00ffd5] hover:bg-[#00ffd5]/10 rounded-lg flex items-center justify-center gap-3 transition-all font-mono text-xs"
-                >
-                  <Terminal size={16} />
-                  <span>DEVELOPER OVERRIDE</span>
-                </button>
-              </div>
-            ) : (
+            {mode === 'dev' ? (
               <form onSubmit={handleDevLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-mono text-[#00ffd5] mb-2">ACCESS KEY</label>
@@ -129,7 +114,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      setMode('user');
+                      setMode('login');
                       setError('');
                     }}
                     className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-xs font-mono transition-colors"
@@ -141,6 +126,118 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     className="flex-1 py-2 px-4 bg-[#00ffd5] hover:bg-[#00ffd5]/80 text-black font-bold rounded-lg text-xs font-mono transition-colors"
                   >
                     AUTHENTICATE
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={mode === 'login' ? handleEmailLogin : handleEmailSignUp} className="space-y-4">
+                
+                {mode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-mono text-[#00ffd5] mb-2">USERNAME</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full bg-black/50 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:border-[#00ffd5] focus:outline-none font-mono"
+                        placeholder="CHOOSE ALIAS..."
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-mono text-[#00ffd5] mb-2">EMAIL ADDRESS</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-black/50 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:border-[#00ffd5] focus:outline-none font-mono"
+                      placeholder="ENTER EMAIL..."
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-[#00ffd5] mb-2">PASSWORD</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-black/50 border border-gray-700 rounded-lg py-2 pl-10 pr-4 text-white focus:border-[#00ffd5] focus:outline-none font-mono"
+                      placeholder="ENTER PASSWORD..."
+                      required
+                    />
+                  </div>
+                </div>
+
+                {mode === 'login' && (
+                  <div className="flex items-center gap-2 cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
+                    {rememberMe ? <CheckSquare size={16} className="text-[#00ffd5]" /> : <Square size={16} className="text-gray-500" />}
+                    <span className="text-xs text-gray-400 font-mono select-none">REMEMBER NEURAL LINK</span>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="text-red-500 text-xs font-mono bg-red-500/10 p-2 rounded border border-red-500/20">
+                    ERROR: {error}
+                  </div>
+                )}
+                
+                {successMsg && (
+                  <div className="text-green-500 text-xs font-mono bg-green-500/10 p-2 rounded border border-green-500/20">
+                    {successMsg}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 bg-[#00ffd5] hover:bg-[#00ffd5]/80 text-black font-bold rounded-lg text-xs font-mono transition-colors flex items-center justify-center gap-2"
+                >
+                  {mode === 'login' ? 'ESTABLISH CONNECTION' : 'INITIATE REGISTRATION'}
+                </button>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-800"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-[#0a0a0f] px-2 text-gray-500">Or</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode(mode === 'login' ? 'signup' : 'login');
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                    className="w-full py-2 px-4 bg-transparent border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 rounded-lg text-xs font-mono transition-colors"
+                  >
+                    {mode === 'login' ? 'CREATE NEW ACCOUNT' : 'ALREADY HAVE AN ACCOUNT? LOGIN'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('dev');
+                      setError('');
+                      setSuccessMsg('');
+                    }}
+                    className="w-full py-2 px-4 bg-transparent border border-[#00ffd5]/30 text-[#00ffd5] hover:bg-[#00ffd5]/10 rounded-lg flex items-center justify-center gap-2 transition-all font-mono text-xs"
+                  >
+                    <Terminal size={14} />
+                    <span>DEVELOPER OVERRIDE</span>
                   </button>
                 </div>
               </form>
