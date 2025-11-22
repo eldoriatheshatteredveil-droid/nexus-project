@@ -102,20 +102,21 @@ const Home: React.FC = () => {
       <div>
         <section id="browse" className="py-8 relative">
           {/* Background Artwork for Header */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[400px] -z-10 overflow-hidden pointer-events-none">
-            {/* Gradient Orbs */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary opacity-[0.03] blur-[120px] rounded-full animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-secondary opacity-[0.03] blur-[100px] rounded-full mix-blend-screen translate-x-10" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[600px] -z-10 overflow-hidden pointer-events-none">
+            {/* Modern Gradient Mesh */}
+            <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow" />
+            <div className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-secondary/10 blur-[100px] rounded-full mix-blend-screen animate-pulse-slow delay-1000" />
+            <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-accent/5 blur-[80px] rounded-full mix-blend-screen animate-pulse-slow delay-2000" />
             
-            {/* Grid Lines */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
+            {/* Subtle Grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_30%,#000_40%,transparent_100%)]" />
             
-            {/* Cyber Rings */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] border border-primary/10 rounded-[100%] animate-[spin_20s_linear_infinite]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[320px] border border-secondary/10 rounded-[100%] animate-[spin_25s_linear_infinite_reverse]" />
+            {/* Clean Cyber Rings */}
+            <div className="absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-primary/5 rounded-full animate-[spin_60s_linear_infinite]" />
+            <div className="absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-secondary/5 rounded-full animate-[spin_40s_linear_infinite_reverse]" />
             
-            {/* Scanning Line */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/5 to-transparent animate-scan" />
+            {/* Soft Scanning Line */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/5 to-transparent animate-scan opacity-30" />
           </div>
 
           <div className="container mx-auto px-4 relative z-10">
