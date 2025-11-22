@@ -78,6 +78,10 @@ interface StoreState {
   // Audio State
   isMusicPlaying: boolean;
   setIsMusicPlaying: (isPlaying: boolean) => void;
+
+  // Auth State (for restricting rewards)
+  isAuthenticated: boolean;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -100,6 +104,7 @@ export const useStore = create<StoreState>()(
       missions: DAILY_MISSIONS,
       highScores: {},
       isMusicPlaying: false,
+      isAuthenticated: false,
 
       addGame: (game) => set((state) => ({ games: [game, ...state.games] })),
       removeGame: (gameId) => set((state) => ({ games: state.games.filter(g => g.id !== gameId) })),
@@ -137,6 +142,7 @@ export const useStore = create<StoreState>()(
       })),
 
       incrementKillCount: (amount = 1) => {
+        if (!get().isAuthenticated) return;
         set((state) => ({ killCount: state.killCount + amount }));
         get().updateMissionProgress('kill', amount);
       },
@@ -147,8 +153,12 @@ export const useStore = create<StoreState>()(
       // Profile Actions
       setXp: (amount) => set({ xp: amount }),
       setPlayTime: (seconds) => set({ playTime: seconds }),
-      addXp: (amount) => set((state) => ({ xp: state.xp + amount })),
+      addXp: (amount) => {
+        if (!get().isAuthenticated) return;
+        set((state) => ({ xp: state.xp + amount }));
+      },
       incrementPlayTime: (seconds) => {
+        if (!get().isAuthenticated) return;
         set((state) => ({ 
           playTime: state.playTime + seconds,
           xp: state.xp + (seconds * 5) // 5 XP per second played
@@ -158,7 +168,10 @@ export const useStore = create<StoreState>()(
       setSelectedAvatarId: (id) => set({ selectedAvatarId: id }),
 
       // Economy Actions
-      addCredits: (amount) => set((state) => ({ credits: (state.credits || 0) + amount })),
+      addCredits: (amount) => {
+        if (!get().isAuthenticated) return;
+        set((state) => ({ credits: (state.credits || 0) + amount }));
+      },
       removeCredits: (amount) => set((state) => ({ credits: Math.max(0, (state.credits || 0) - amount) })),
       
       addItem: (itemId) => set((state) => ({ 
@@ -181,43 +194,50 @@ export const useStore = create<StoreState>()(
 
       setFaction: (faction) => set({ faction }),
 
-      updateMissionProgress: (type, amount) => set((state) => {
-        const updatedMissions = state.missions.map(mission => {
-          if (mission.type === type && !mission.completed) {
-            const newCurrent = mission.current + amount;
-            const isCompleted = newCurrent >= mission.target;
-            
-            if (isCompleted && !mission.completed) {
-              // Grant rewards immediately
-              // Note: We can't call get().addCredits here easily inside set, 
-              // so we handle it by updating the state directly
-              state.credits += mission.reward;
-              state.xp += mission.xpReward;
-              // Could trigger a notification here
-            }
+      updateMissionProgress: (type, amount) => {
+        if (!get().isAuthenticated) return;
+        set((state) => {
+          const updatedMissions = state.missions.map(mission => {
+            if (mission.type === type && !mission.completed) {
+              const newCurrent = mission.current + amount;
+              const isCompleted = newCurrent >= mission.target;
+              
+              if (isCompleted && !mission.completed) {
+                // Grant rewards immediately
+                // Note: We can't call get().addCredits here easily inside set, 
+                // so we handle it by updating the state directly
+                state.credits += mission.reward;
+                state.xp += mission.xpReward;
+                // Could trigger a notification here
+              }
 
-            return {
-              ...mission,
-              current: newCurrent,
-              completed: isCompleted
-            };
-          }
-          return mission;
+              return {
+                ...mission,
+                current: newCurrent,
+                completed: isCompleted
+              };
+            }
+            return mission;
+          });
+          return { missions: updatedMissions, credits: state.credits, xp: state.xp };
         });
-        return { missions: updatedMissions, credits: state.credits, xp: state.xp };
-      }),
+      },
 
       resetMissions: () => set({ missions: DAILY_MISSIONS }),
 
-      updateHighScore: (gameId, score) => set((state) => {
-        const currentHigh = state.highScores[gameId] || 0;
-        if (score > currentHigh) {
-          return { highScores: { ...state.highScores, [gameId]: score } };
-        }
-        return {};
-      }),
+      updateHighScore: (gameId, score) => {
+        if (!get().isAuthenticated) return;
+        set((state) => {
+          const currentHigh = state.highScores[gameId] || 0;
+          if (score > currentHigh) {
+            return { highScores: { ...state.highScores, [gameId]: score } };
+          }
+          return {};
+        });
+      },
 
       setIsMusicPlaying: (isPlaying) => set({ isMusicPlaying: isPlaying }),
+      setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
     }),
     {
       name: 'nexus-storage', // unique name

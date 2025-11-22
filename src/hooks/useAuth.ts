@@ -19,7 +19,11 @@ const TESTER_KEY = "tester2025";
 export const useAuth = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setKillCount, setXp, setPlayTime } = useStore();
+  const { setKillCount, setXp, setPlayTime, setIsAuthenticated } = useStore();
+
+  useEffect(() => {
+    setIsAuthenticated(!!user);
+  }, [user, setIsAuthenticated]);
 
   useEffect(() => {
     // Check for dev/tester session in local storage
