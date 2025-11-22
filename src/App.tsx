@@ -9,6 +9,7 @@ import Contact from './pages/Contact';
 import About from './pages/About';
 import PlayGame from './pages/PlayGame';
 import Profile from './pages/Profile';
+import SimulatedEmail from './pages/SimulatedEmail';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,9 @@ const App: React.FC = () => {
       <Routes>
         {/* Game Route - No Layout */}
         <Route path="/play/:gameId" element={<PlayGame />} />
+        
+        {/* Simulated Email Route - No Layout */}
+        <Route path="/verify-email-simulation" element={<SimulatedEmail />} />
 
         {/* Main Routes - With Layout */}
         <Route path="*" element={

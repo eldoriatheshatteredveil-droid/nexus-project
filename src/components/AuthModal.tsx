@@ -7,9 +7,10 @@ import { useStore } from '../store';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMessage?: string;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMessage }) => {
   const { signInWithDevKey, signInWithEmail, signUpWithEmail } = useAuth();
   const { addMessage } = useStore();
   const [devKey, setDevKey] = useState('');
@@ -18,8 +19,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [username, setUsername] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState(initialMessage || '');
   const [mode, setMode] = useState<'login' | 'signup' | 'dev'>('login');
+
+  // Update success message if prop changes
+  React.useEffect(() => {
+    if (initialMessage) {
+      setSuccessMsg(initialMessage);
+    }
+  }, [initialMessage]);
 
   const handleDevLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +60,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (error) {
       setError(error.message);
     } else {
-      // Send Welcome Message
+      // Send Welcome Message (will be waiting in inbox when they log in)
       addMessage({
         id: `welcome-${Date.now()}`,
         sender: 'NEXUS_SYSTEM',
@@ -63,8 +71,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         type: 'system'
       });
 
-      setSuccessMsg('Account created! Please check your email to confirm.');
-      // Optional: Switch to login mode or close modal
+      setSuccessMsg('Account created! Verification email sent.');
+      // Redirect to simulated email after a short delay
+      setTimeout(() => {
+        onClose();
+        window.location.href = `/verify-email-simulation?email=${encodeURIComponent(email)}`;
+      }, 1500);
     }
   };
 

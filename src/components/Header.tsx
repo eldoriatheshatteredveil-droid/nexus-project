@@ -60,12 +60,25 @@ const Header: React.FC = () => {
     const { user } = useAuth();
     const [fireworksId, setFireworksId] = useState<number | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authMessage, setAuthMessage] = useState('');
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [isMailboxOpen, setIsMailboxOpen] = useState(false);
 
     const currentLevel = getLevelFromXP(xp);
     const avatarUrl = AVATARS.find(a => a.id === selectedAvatarId)?.url || user?.avatar_url;
     const unreadMessages = messages.filter(m => !m.read).length;
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'login') {
+            setIsAuthModalOpen(true);
+            if (params.get('verified') === 'true') {
+                setAuthMessage('Account verified successfully! Please login.');
+            }
+            // Clean up URL
+            window.history.replaceState({}, '', '/');
+        }
+    }, []);
 
     useEffect(() => {
         if (killCount > 0 && killCount % 10 === 0) {
@@ -221,7 +234,11 @@ const Header: React.FC = () => {
 
             <Chat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
             <Mailbox isOpen={isMailboxOpen} onClose={() => setIsMailboxOpen(false)} />
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+            <AuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => { setIsAuthModalOpen(false); setAuthMessage(''); }} 
+                initialMessage={authMessage}
+            />
         </>
     );
 };

@@ -10,6 +10,7 @@ export interface UserProfile {
   is_dev?: boolean;
   is_tester?: boolean;
   kill_count?: number;
+  verified?: boolean;
 }
 
 const DEV_KEY = "1113199011 131990";
@@ -133,12 +134,17 @@ export const useAuth = () => {
     const foundUser = users.find((u: any) => u.email === email && u.password === password);
 
     if (foundUser) {
+      if (!foundUser.verified) {
+        return { data: null, error: { message: 'Account not verified. Please check your email.' } };
+      }
+
       const userProfile: UserProfile = {
         id: foundUser.id,
         email: foundUser.email,
         username: foundUser.username,
         avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${foundUser.username}`,
-        kill_count: 0
+        kill_count: 0,
+        verified: true
       };
       localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
       setUser(userProfile);
@@ -173,24 +179,40 @@ export const useAuth = () => {
       id: `user-${Date.now()}`,
       email,
       password, // In a real app, NEVER store plain text passwords
-      username
+      username,
+      verified: false
     };
 
     users.push(newUser);
     localStorage.setItem('nexus_registered_users', JSON.stringify(users));
 
-    // Auto login after signup
-    const userProfile: UserProfile = {
-      id: newUser.id,
-      email: newUser.email,
-      username: newUser.username,
-      avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${newUser.username}`,
-      kill_count: 0
-    };
-    localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
-    setUser(userProfile);
+    // Return success but indicate verification needed (no session created)
+    return { data: { user: { ...newUser, kill_count: 0 } }, error: null };
+  };
 
-    return { data: { user: userProfile }, error: null };
+  const verifyUser = (email: string) => {
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const userIndex = users.findIndex((u: any) => u.email === email);
+    
+    if (userIndex >= 0) {
+      users[userIndex].verified = true;
+      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      
+      // Auto login after verification
+      const user = users[userIndex];
+      const userProfile: UserProfile = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`,
+        kill_count: 0,
+        verified: true
+      };
+      localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
+      setUser(userProfile);
+      return true;
+    }
+    return false;
   };
 
   const signOut = async () => {
@@ -232,7 +254,8 @@ export const useAuth = () => {
     signInWithEmail,
     signUpWithEmail,
     signOut,
-    updateUsername
+    updateUsername,
+    verifyUser
   };
 };
 
