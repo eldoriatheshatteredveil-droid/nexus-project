@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, List, Music, Loader2, ChevronRight, Radio } from 'lucide-react';
 import { MUSIC_TRACKS, Track } from '../data/music';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStore } from '../store';
 
 const MusicPlayer: React.FC = () => {
+  const { setIsMusicPlaying } = useStore();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(0.3);
@@ -13,6 +15,11 @@ const MusicPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const currentTrack = MUSIC_TRACKS[currentTrackIndex];
+
+  // Sync local playing state with global store
+  useEffect(() => {
+    setIsMusicPlaying(isPlaying);
+  }, [isPlaying, setIsMusicPlaying]);
 
   useEffect(() => {
     if (audioRef.current) {

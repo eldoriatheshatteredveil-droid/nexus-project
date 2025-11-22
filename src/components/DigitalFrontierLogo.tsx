@@ -1,39 +1,83 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useStore } from '../store';
 
 const DigitalFrontierLogo: React.FC = () => {
+  const { isMusicPlaying } = useStore();
+  const [analyzerData, setAnalyzerData] = useState<number[]>(new Array(20).fill(10));
+
+  // Simulate audio spectrum data
+  useEffect(() => {
+    if (!isMusicPlaying) {
+      setAnalyzerData(new Array(20).fill(10));
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setAnalyzerData(prev => prev.map(() => Math.random() * 40 + 10));
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isMusicPlaying]);
+
   return (
-    <div className="relative flex flex-col items-center justify-center py-10 select-none">
-      {/* Background Elements */}
+    <div className="relative flex flex-col items-center justify-center py-10 select-none w-full overflow-hidden">
+      {/* Background Elements - Cleaned up */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div 
-          className="w-[120%] h-[100px] bg-gradient-to-r from-transparent via-[#00ffd5]/10 to-transparent blur-xl"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity }}
+          className="w-[120%] h-[150px] bg-gradient-to-r from-transparent via-[#00ffd5]/5 to-transparent"
+          animate={{ 
+            opacity: isMusicPlaying ? [0.1, 0.3, 0.1] : 0.1,
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
       </div>
 
       {/* Main Logo Container */}
-      <div className="relative z-10 flex flex-col items-center">
+      <div className="relative z-10 flex flex-col items-center gap-8 max-w-[80vw]">
         
-        {/* Nexus Orb Symbol */}
-        <div className="relative w-24 h-24 flex items-center justify-center mb-6">
-          {/* Rotating Outer Ring */}
+        {/* Nexus Orb Symbol - Sharper, Tech Look */}
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          {/* Spectrum Analyzer around Orb */}
+          {isMusicPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {analyzerData.map((height, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 bg-[#00ffd5] origin-bottom shadow-[0_0_5px_#00ffd5]"
+                  style={{
+                    height: `${height / 2}px`,
+                    bottom: '50%',
+                    left: '50%',
+                    transform: `rotate(${i * (360 / 20)}deg) translateY(50px)`,
+                  }}
+                  animate={{ 
+                    height: [`${height / 3}px`, `${height / 1.5}px`, `${height / 3}px`],
+                    opacity: [0.8, 0.2, 0.8]
+                  }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                />
+              ))}
+            </div>
+          )}
+          {/* Tech Ring 1 */}
           <motion.div 
-            className="absolute inset-0 border-2 border-dashed border-[#00ffd5]/30 rounded-full"
+            className="absolute inset-0 border border-[#00ffd5] rounded-full opacity-30"
+            style={{ borderTopColor: 'transparent', borderBottomColor: 'transparent' }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
           />
           
-          {/* Counter-Rotating Inner Ring */}
+          {/* Tech Ring 2 (Counter) */}
           <motion.div 
-            className="absolute inset-2 border border-[#ff66cc]/30 rounded-full"
+            className="absolute inset-1 border border-[#ff66cc] rounded-full opacity-30"
+            style={{ borderLeftColor: 'transparent', borderRightColor: 'transparent' }}
             animate={{ rotate: -360 }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
           />
 
           {/* Central Core (The "N" / Nexus Node) */}
-          <svg viewBox="0 0 24 24" className="w-12 h-12 relative z-10 drop-shadow-neon-lg">
+          <svg viewBox="0 0 24 24" className="w-12 h-12 relative z-10 drop-shadow-[0_0_5px_rgba(0,255,213,0.8)]">
             <defs>
               <linearGradient id="nexusGradientDF" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#00ffd5" />
@@ -44,99 +88,80 @@ const DigitalFrontierLogo: React.FC = () => {
               d="M4 4 L12 20 L20 4"
               fill="none"
               stroke="url(#nexusGradientDF)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeWidth="2"
+              strokeLinecap="square"
+              strokeLinejoin="miter"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 1 }}
               transition={{ duration: 1.5, ease: "easeInOut" }}
             />
-            <motion.circle 
-              cx="4" cy="4" r="2" 
-              fill="#00ffd5"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            <motion.circle 
-              cx="20" cy="4" r="2" 
-              fill="#ff66cc"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-            />
-            <motion.circle 
-              cx="12" cy="20" r="2" 
-              fill="#ffffff"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-            />
+            {/* Data Points */}
+            <motion.circle cx="4" cy="4" r="1.5" fill="#00ffd5" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1, repeat: Infinity }} />
+            <motion.circle cx="20" cy="4" r="1.5" fill="#ff66cc" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1, repeat: Infinity, delay: 0.3 }} />
+            <motion.circle cx="12" cy="20" r="1.5" fill="#ffffff" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1, repeat: Infinity, delay: 0.6 }} />
           </svg>
-          
-          {/* Glow Effect */}
-          <div className="absolute inset-0 bg-[#00ffd5] blur-2xl opacity-20 animate-pulse" />
         </div>
 
-        {/* Top Line: DIGITAL */}
-        <div className="relative">
-          <motion.h1 
-            className="text-6xl md:text-8xl font-black tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-neon"
-          >
-            DIGITAL
-          </motion.h1>
-          
-          {/* Glitch Overlay for DIGITAL */}
-          <motion.h1 
-            className="absolute top-0 left-0 text-6xl md:text-8xl font-black tracking-tighter italic text-[#00ffd5] mix-blend-overlay opacity-50 text-glow"
-            animate={{ x: [-2, 2, -1, 0], opacity: [0, 0.5, 0] }}
-            transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 3 }}
-          >
-            DIGITAL
-          </motion.h1>
-        </div>
+        {/* Text Container */}
+        <div className="flex flex-col items-center justify-center">
+          {/* Top Line: DIGITAL */}
+          <div className="relative leading-none">
+            <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-100 to-gray-500 drop-shadow-2xl z-10 relative">
+              DIGITAL
+            </h1>
+            
+            {/* Modern Chromatic Aberration */}
+            {isMusicPlaying && (
+              <>
+                <motion.h1 
+                  className="absolute top-0 left-0 text-7xl md:text-9xl font-black tracking-tighter text-[#00ffd5] mix-blend-screen opacity-60 z-0"
+                  animate={{ x: [-2, 2, -1, 0] }}
+                  transition={{ duration: 0.2, repeat: Infinity }}
+                >
+                  DIGITAL
+                </motion.h1>
+                <motion.h1 
+                  className="absolute top-0 left-0 text-7xl md:text-9xl font-black tracking-tighter text-[#ff0055] mix-blend-screen opacity-60 z-0"
+                  animate={{ x: [2, -2, 1, 0] }}
+                  transition={{ duration: 0.2, repeat: Infinity }}
+                >
+                  DIGITAL
+                </motion.h1>
+              </>
+            )}
+          </div>
 
-        {/* Middle Line: Horizon / Separator */}
-        <div className="w-full max-w-[600px] h-[2px] bg-gradient-to-r from-transparent via-[#ff66cc] to-transparent my-2 relative overflow-hidden shadow-neon-secondary">
-          <motion.div 
-            className="absolute top-0 left-0 w-full h-full bg-white"
-            animate={{ x: ['-100%', '100%'] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
-
-        {/* Bottom Line: FRONTIER */}
-        <div className="relative">
-          <motion.h2 
-            className="text-5xl md:text-7xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-[#00ffd5] via-white to-[#00ffd5] drop-shadow-neon"
-            style={{ fontFamily: 'Orbitron, sans-serif' }}
-          >
-            FRONTIER
-          </motion.h2>
-
-          {/* Reflection / Glow */}
-          <div className="absolute top-full left-0 w-full h-full bg-gradient-to-b from-[#00ffd5]/20 to-transparent transform scale-y-[-0.5] blur-sm opacity-30 mask-image-gradient" />
+          {/* Bottom Line: FRONTIER */}
+          <div className="relative mt-2">
+            <h2 
+              className="text-sm md:text-xl font-medium tracking-[1.5em] text-[#00ffd5] uppercase drop-shadow-[0_0_10px_rgba(0,255,213,0.5)] ml-6"
+              style={{ fontFamily: 'Orbitron, sans-serif' }}
+            >
+              FRONTIER
+            </h2>
+          </div>
         </div>
       </div>
 
-      {/* Decorative Tech Elements */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-12 hidden md:flex flex-col gap-2">
-        {[...Array(5)].map((_, i) => (
-          <motion.div 
-            key={i}
-            className="w-2 h-2 bg-[#00ffd5] rounded-full shadow-neon-sm"
-            animate={{ opacity: [0.2, 1, 0.2] }}
-            transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
-          />
-        ))}
-      </div>
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-12 hidden md:flex flex-col gap-2">
-        {[...Array(5)].map((_, i) => (
-          <motion.div 
-            key={i}
-            className="w-2 h-2 bg-[#ff66cc] rounded-full shadow-neon-secondary"
-            animate={{ opacity: [0.2, 1, 0.2] }}
-            transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
-          />
-        ))}
-      </div>
+      {/* Side Data Streams */}
+      {isMusicPlaying && (
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
+          <div className="absolute left-4 md:left-10 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#00ffd5]/20 to-transparent hidden md:block">
+             <motion.div 
+               className="w-[2px] h-40 bg-[#00ffd5] shadow-[0_0_15px_#00ffd5]" 
+               animate={{ y: [-150, 600] }} 
+               transition={{ duration: 2, repeat: Infinity, ease: "linear" }} 
+             />
+          </div>
+          <div className="absolute right-4 md:right-10 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#ff66cc]/20 to-transparent hidden md:block">
+             <motion.div 
+               className="w-[2px] h-40 bg-[#ff66cc] shadow-[0_0_15px_#ff66cc]" 
+               animate={{ y: [-150, 600] }} 
+               transition={{ duration: 2.2, repeat: Infinity, ease: "linear", delay: 0.5 }} 
+             />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

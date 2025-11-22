@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { useStore } from '../store';
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
@@ -23,6 +24,7 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
   const [score, setScore] = useState({ player: 0, ai: 0 });
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState<'PLAYER' | 'AI' | null>(null);
+  const { updateHighScore } = useStore();
 
   // Mutable game state for the loop (to avoid closure staleness)
   const gameState = useRef({
@@ -85,6 +87,13 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
+
+  // Save score on Game Over
+  useEffect(() => {
+    if (gameOver) {
+      updateHighScore('nexus-pong', score.player);
+    }
+  }, [gameOver, score.player, updateHighScore]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

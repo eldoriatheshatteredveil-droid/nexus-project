@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
-import { Shield, Crosshair, Trophy, Cpu, LogOut, Clock, User, Activity, Settings, Grid, Zap, Lock, Unlock, Edit2, Check, X, AlertTriangle, Award, Star, Hexagon } from 'lucide-react';
+import { Shield, Crosshair, Trophy, Cpu, LogOut, Clock, User, Activity, Settings, Grid, Zap, Lock, Unlock, Edit2, Check, X, AlertTriangle, Award, Star, Hexagon, Flag, Briefcase } from 'lucide-react';
 import { ORBS } from '../data/orbs';
 import { AVATARS, getLevelFromXP, getXPForLevel } from '../data/avatars';
+import { MARKET_ITEMS } from '../data/items';
+import ProceduralAvatar from '../components/ProceduralAvatar';
 
 const Profile: React.FC = () => {
   const { user, signOut, updateUsername } = useAuth();
-  const { killCount, selectedOrbId, xp, playTime, selectedAvatarId, setSelectedAvatarId, addXp, setKillCount } = useStore();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'settings'>('overview');
+  const { killCount, selectedOrbId, xp, playTime, selectedAvatarId, setSelectedAvatarId, addXp, setKillCount, faction, addCredits, inventory, equipItem, unequipItem, isEquipped } = useStore();
+  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'inventory' | 'settings'>('overview');
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -94,19 +96,31 @@ const Profile: React.FC = () => {
         className="relative mb-8 rounded-2xl overflow-hidden border border-[#00ffd5]/20 bg-black/40 backdrop-blur-xl group"
       >
         {/* Cover Image */}
-        <div className="absolute inset-0 h-48 bg-[url('https://images.unsplash.com/photo-1535868463750-c78d9543614f?q=80&w=2076&auto=format&fit=crop')] bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity duration-700" />
+        <div 
+          className="absolute inset-0 h-48 bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity duration-700"
+          style={{
+            backgroundImage: `url('${
+              faction === 'security' 
+                ? 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop'
+                : faction === 'syndicate'
+                  ? 'https://images.unsplash.com/photo-1625806786037-2af69df42ea2?q=80&w=1974&auto=format&fit=crop'
+                  : 'https://images.unsplash.com/photo-1535868463750-c78d9543614f?q=80&w=2076&auto=format&fit=crop'
+            }')`
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black" />
 
         <div className="relative z-10 pt-32 px-8 pb-8 flex flex-col md:flex-row items-center md:items-end gap-8">
           {/* Avatar */}
           <div className="relative group/avatar">
-            <div className="w-32 h-32 rounded-2xl border-2 border-[#00ffd5] p-1 relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,255,213,0.2)] group-hover/avatar:shadow-[0_0_50px_rgba(0,255,213,0.4)] transition-shadow duration-500">
-              <img 
-                src={AVATARS.find(a => a.id === selectedAvatarId)?.url || user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.email}`} 
-                alt="Avatar" 
-                className="w-full h-full rounded-xl object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#00ffd5]/20 to-transparent opacity-50" />
+            <div className="w-32 h-32 rounded-2xl border-2 border-[#00ffd5] p-1 relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,255,213,0.2)] group-hover/avatar:shadow-[0_0_50px_rgba(0,255,213,0.4)] transition-shadow duration-500 flex items-center justify-center">
+              {(() => {
+                const selectedAvatar = AVATARS.find(a => a.id === selectedAvatarId);
+                // Use selected avatar level, or current user level if no avatar selected (or fallback to 1)
+                const level = selectedAvatar ? selectedAvatar.minLevel : Math.max(1, currentLevel);
+                return <ProceduralAvatar level={level} size={120} />;
+              })()}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#00ffd5]/20 to-transparent opacity-50 pointer-events-none" />
             </div>
             <div className="absolute -bottom-3 -right-3 bg-black border border-[#00ffd5] text-[#00ffd5] text-xs font-bold px-3 py-1 rounded-lg font-orbitron shadow-[0_0_10px_rgba(0,255,213,0.3)] flex items-center gap-1">
               <Shield size={10} />
@@ -175,6 +189,15 @@ const Profile: React.FC = () => {
               </span>
               <span className="text-gray-600">|</span>
               <span>ID: {user.id.slice(0, 8).toUpperCase()}</span>
+              {faction && (
+                <>
+                  <span className="text-gray-600">|</span>
+                  <span className={`flex items-center gap-1 font-bold ${faction === 'syndicate' ? 'text-[#ff0055]' : 'text-[#0088ff]'}`}>
+                    <Flag size={12} />
+                    {faction.toUpperCase()}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -199,9 +222,10 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-t border-white/5 bg-black/20 px-8">
+        <div className="flex border-t border-white/5 bg-black/20 px-8 overflow-x-auto">
           <TabButton id="overview" label="OVERVIEW" icon={Activity} />
           <TabButton id="collection" label="COLLECTION" icon={Grid} />
+          <TabButton id="inventory" label="INVENTORY" icon={Briefcase} />
           <TabButton id="settings" label="SYSTEM" icon={Settings} />
         </div>
       </motion.div>
@@ -408,21 +432,23 @@ const Profile: React.FC = () => {
                             : 'border-gray-900 opacity-40 grayscale cursor-not-allowed'
                       }`}
                     >
-                      <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover bg-gray-900" />
+                      <div className="w-full h-full bg-gray-900 flex items-center justify-center p-2">
+                        <ProceduralAvatar level={avatar.minLevel} size={64} />
+                      </div>
                       
                       {!isUnlocked && (
-                        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-1">
+                        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-1 z-20">
                           <Lock size={12} className="text-gray-600" />
                           <span className="text-[8px] font-bold text-gray-600 font-mono">LVL {avatar.minLevel}</span>
                         </div>
                       )}
                       
                       {isUnlocked && !isSelected && (
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors z-20" />
                       )}
 
                       {/* Rarity Indicator */}
-                      <div className={`absolute top-0 right-0 w-2 h-2 rounded-bl-lg ${
+                      <div className={`absolute top-0 right-0 w-2 h-2 rounded-bl-lg z-20 ${
                         avatar.rarity === 'legendary' ? 'bg-yellow-400' :
                         avatar.rarity === 'epic' ? 'bg-[#ff66cc]' :
                         avatar.rarity === 'rare' ? 'bg-[#00ffd5]' :
@@ -519,6 +545,59 @@ const Profile: React.FC = () => {
           </motion.div>
         )}
 
+        {activeTab === 'inventory' && (
+          <motion.div
+            key="inventory"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {inventory && inventory.length > 0 ? (
+              MARKET_ITEMS.filter(item => inventory.includes(item.id)).map(item => {
+                const equipped = isEquipped(item.id);
+                return (
+                  <div key={item.id} className={`bg-black/40 border p-6 rounded-xl backdrop-blur-sm transition-all ${equipped ? 'border-[#00ffd5] shadow-[0_0_15px_rgba(0,255,213,0.2)]' : 'border-gray-800 hover:border-gray-600'}`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className={`p-3 rounded-lg ${
+                        item.rarity === 'legendary' ? 'bg-yellow-500/10 text-yellow-500' :
+                        item.rarity === 'illegal' ? 'bg-red-500/10 text-red-500' :
+                        'bg-[#00ffd5]/10 text-[#00ffd5]'
+                      }`}>
+                        {/* We don't have the getIcon helper here easily, so just use a generic icon or import icons */}
+                        <Briefcase size={24} />
+                      </div>
+                      {equipped && (
+                        <span className="text-[10px] font-bold bg-[#00ffd5]/20 text-[#00ffd5] px-2 py-1 rounded border border-[#00ffd5]/30 animate-pulse">ACTIVE</span>
+                      )}
+                    </div>
+
+                    <h3 className="font-bold text-white font-orbitron mb-1">{item.name}</h3>
+                    <p className="text-xs text-gray-500 font-mono mb-4 h-8">{item.description}</p>
+
+                    <button
+                      onClick={() => equipped ? unequipItem(item.id) : equipItem(item.id)}
+                      className={`w-full py-2 rounded font-bold text-xs tracking-wider transition-all ${
+                        equipped 
+                          ? 'bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20' 
+                          : 'bg-[#00ffd5]/10 text-[#00ffd5] border border-[#00ffd5]/30 hover:bg-[#00ffd5]/20'
+                      }`}
+                    >
+                      {equipped ? 'UNEQUIP' : 'EQUIP MODULE'}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+                <Briefcase size={48} className="mb-4 opacity-20" />
+                <p className="font-orbitron text-lg">INVENTORY EMPTY</p>
+                <p className="font-mono text-xs mt-2">VISIT THE BLACK MARKET TO ACQUIRE ASSETS</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {activeTab === 'settings' && (
           <motion.div
             key="settings"
@@ -575,6 +654,13 @@ const Profile: React.FC = () => {
                   >
                     <span>GRANT 1,000 KILLS</span>
                     <Crosshair size={14} className="group-hover:rotate-90 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={() => addCredits(999999999)}
+                    className={`w-full py-3 border rounded text-xs font-mono flex items-center justify-between px-4 group ${user.is_dev ? 'bg-[#ff66cc]/10 border-[#ff66cc]/30 text-[#ff66cc] hover:bg-[#ff66cc]/20' : 'bg-orange-500/10 border-orange-500/30 text-orange-500 hover:bg-orange-500/20'}`}
+                  >
+                    <span>GRANT INFINITE CREDITS</span>
+                    <Zap size={14} className="group-hover:scale-110 transition-transform" />
                   </button>
                   <div className={`text-[10px] font-mono mt-4 text-center border-t pt-4 ${user.is_dev ? 'text-[#ff66cc]/60 border-[#ff66cc]/20' : 'text-orange-500/60 border-orange-500/20'}`}>
                     {user.is_dev ? 'WARNING: DIRECT MEMORY MANIPULATION DETECTED' : 'TEST MODE: STATS WILL PERSIST'}

@@ -27,7 +27,7 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
     const rx = (y - 0.5) * 10;
     const ry = (x - 0.5) * -10;
     el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(8px)`;
-    el.style.boxShadow = `0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(0, 255, 213, 0.4), 0 0 40px rgba(0, 255, 213, 0.2)`;
+    el.style.boxShadow = `0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgb(var(--color-primary) / 0.4), 0 0 40px rgb(var(--color-primary) / 0.2)`;
   };
 
   const handleLeave = () => {
@@ -54,7 +54,7 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
       transition={{ duration: 0.6 }}
       className="game-card glassmorphic overflow-hidden relative w-full max-w-[380px] group cursor-pointer"
       style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,51,153,0.01))',
         border: '1px solid rgba(255,255,255,0.06)',
         backdropFilter: 'blur(10px) saturate(140%)',
       }}
@@ -67,22 +67,22 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
         />
 
         {/* Glitch overlay on hover */}
-        <div className="absolute inset-0 bg-cyan-500/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+        <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
         
         {/* cover distortion / parallax overlay (mocked) */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-screen" style={{ background: 'linear-gradient(120deg, rgba(0,255,204,0.06), rgba(255,51,153,0.04))' }} />
+        <div className="absolute inset-0 pointer-events-none mix-blend-screen" style={{ background: 'linear-gradient(120deg, rgb(var(--color-primary) / 0.06), rgb(var(--color-secondary) / 0.04))' }} />
       </div>
 
       <div className="p-4 relative">
-        <h3 className="text-xl font-semibold tracking-tight group-hover:text-[#00ffd5] group-hover:text-glow transition-all duration-300">{game.title}</h3>
+        <h3 className="text-xl font-semibold tracking-tight group-hover:text-primary group-hover:text-glow transition-all duration-300">{game.title}</h3>
         <p className="text-sm text-gray-300 mt-1 line-clamp-2">{game.description}</p>
 
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-[#001f21] text-[#00ffd5] border border-[#00ffd5]/20">{game.tags[0]}</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{game.tags[0]}</span>
           </div>
           
-          <button className="text-xs uppercase tracking-widest text-[#00ffd5] hover:text-white transition-colors">
+          <button className="text-xs uppercase tracking-widest text-primary hover:text-white transition-colors">
             View Details &rarr;
           </button>
         </div>

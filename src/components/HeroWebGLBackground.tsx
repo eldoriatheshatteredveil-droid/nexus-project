@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { InstancedMesh, Object3D, Color } from 'three';
 import * as THREE from 'three';
+import { useStore } from '../store';
 
 /**
  * HeroWebGLBackground
@@ -11,11 +12,19 @@ import * as THREE from 'three';
  * - Uses InstancedMesh for high performance with thousands of cubes.
  */
 
-const PixelGrid: React.FC = () => {
+interface ThemeColors {
+  primary: string;
+  secondary: string;
+  bg: string;
+  fog: string;
+}
+
+const PixelGrid: React.FC<{ theme: ThemeColors }> = ({ theme }) => {
   const meshRef = useRef<InstancedMesh>(null!);
   const [hovered, setHover] = useState<number | null>(null);
   const dummy = useMemo(() => new Object3D(), []);
   const color = useMemo(() => new Color(), []);
+  const primaryColor = useMemo(() => new Color(theme.primary), [theme.primary]);
   
   // Grid configuration
   const rows = 40;
@@ -53,29 +62,32 @@ const PixelGrid: React.FC = () => {
         const dy = yPos - mouse.current.y * 20;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Wave effect
-        const z = Math.sin(dist * 0.5 - time * 2) * 1.5 + Math.cos(x * 0.2 + time) * 0.5;
+        // Wave effect - Smoother, slower
+        const z = Math.sin(dist * 0.2 - time * 0.5) * 0.8 + Math.cos(x * 0.1 + time * 0.5) * 0.2;
         
-        // Scale effect based on proximity
-        const scale = Math.max(0.2, 1 - dist * 0.15);
+        // Scale effect based on proximity - Less aggressive
+        const scale = Math.max(0.1, 0.6 - dist * 0.05);
 
         dummy.position.set(xPos, yPos, z);
         dummy.scale.set(scale, scale, scale);
-        dummy.rotation.x = time * 0.2 + dist * 0.1;
-        dummy.rotation.y = time * 0.1;
+        // Gentle rotation
+        dummy.rotation.x = time * 0.1 + dist * 0.05;
+        dummy.rotation.y = time * 0.05;
         dummy.updateMatrix();
 
         meshRef.current.setMatrixAt(i, dummy.matrix);
 
-        // Color effect
-        // Base color: dark cyan/purple
-        // Highlight: bright cyan/white
-        const isNear = dist < 5;
-        const r = isNear ? 0.2 : 0.05;
-        const g = isNear ? 1.0 : 0.1;
-        const b = isNear ? 0.8 : 0.2;
+        // Color effect - Softer
+        const isNear = dist < 8;
         
-        color.setRGB(r, g, b);
+        if (isNear) {
+          // Lerp towards primary color based on distance
+          const intensity = Math.max(0, 1 - dist / 8);
+          color.copy(primaryColor).multiplyScalar(0.3 + intensity * 0.4);
+        } else {
+          color.copy(primaryColor).multiplyScalar(0.05);
+        }
+        
         meshRef.current.setColorAt(i, color);
 
         i++;
@@ -87,35 +99,68 @@ const PixelGrid: React.FC = () => {
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <boxGeometry args={[0.8, 0.8, 0.8]} />
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
       <meshStandardMaterial 
-        color="#000000" 
-        emissive="#00ffd5" 
-        emissiveIntensity={0.5} 
-        roughness={0.1} 
-        metalness={0.8} 
+        color="#111111" 
+        emissive={theme.primary} 
+        emissiveIntensity={0.2} 
+        roughness={0.4} 
+        metalness={0.6} 
         transparent 
-        opacity={0.9} 
+        opacity={0.6} 
       />
     </instancedMesh>
   );
 };
 
 const HeroWebGLBackground: React.FC = () => {
+  const equippedItems = useStore((state) => state.equippedItems);
+  
+  const theme = useMemo(() => {
+    if (equippedItems.some(i => i === 'cosmetic_gold_hud')) {
+      return {
+        primary: '#FFD700',
+        secondary: '#DAA520',
+        bg: '#1a1a00',
+        fog: '#1a1a00'
+      };
+    }
+    if (equippedItems.some(i => i === 'cosmetic_matrix')) {
+      return {
+        primary: '#00FF00',
+        secondary: '#003300',
+        bg: '#000000',
+        fog: '#000000'
+      };
+    }
+    return {
+      primary: '#00ffd5',
+      secondary: '#ff66cc',
+      bg: '#07070b',
+      fog: '#07070b'
+    };
+  }, [equippedItems]);
+
   return (
-    <div className="absolute inset-0 -z-10 opacity-60">
-      <Canvas camera={{ position: [0, 0, 40], fov: 50 }} gl={{ antialias: true }}>
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} intensity={1} color="#ff66cc" />
-        <pointLight position={[-10, -10, 10]} intensity={1} color="#00ffd5" />
-        <fog attach="fog" args={["#07070b", 20, 60]} />
-        <PixelGrid />
+    <div className="absolute inset-0 -z-10 opacity-30 transition-opacity duration-1000">
+      <Canvas camera={{ position: [0, 0, 45], fov: 45 }} gl={{ antialias: true, alpha: true }}>
+        <ambientLight intensity={0.1} />
+        <pointLight position={[10, 10, 10]} intensity={0.5} color={theme.secondary} />
+        <pointLight position={[-10, -10, 10]} intensity={0.5} color={theme.primary} />
+        <fog attach="fog" args={[theme.fog, 25, 65]} />
+        <PixelGrid theme={theme} />
       </Canvas>
 
-      {/* Gradient blob overlays */}
-      <div className="pointer-events-none absolute -z-5 inset-0 mix-blend-screen">
-        <div className="absolute -left-[10%] top-20 w-[40vw] h-[40vw] rounded-full blur-[100px] opacity-20 bg-[#ff007f] animate-pulse" />
-        <div className="absolute right-0 bottom-0 w-[35vw] h-[35vw] rounded-full blur-[100px] opacity-20 bg-[#00ffd5] animate-pulse" />
+      {/* Gradient blob overlays - Softer */}
+      <div className="pointer-events-none absolute -z-5 inset-0 mix-blend-soft-light">
+        <div 
+          className="absolute -left-[10%] top-20 w-[50vw] h-[50vw] rounded-full blur-[150px] opacity-10 animate-pulse transition-colors duration-1000" 
+          style={{ backgroundColor: theme.secondary }}
+        />
+        <div 
+          className="absolute right-0 bottom-0 w-[45vw] h-[45vw] rounded-full blur-[150px] opacity-10 animate-pulse transition-colors duration-1000" 
+          style={{ backgroundColor: theme.primary }}
+        />
       </div>
     </div>
   );

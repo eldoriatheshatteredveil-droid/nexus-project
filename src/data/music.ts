@@ -55,5 +55,40 @@ export const MUSIC_TRACKS: Track[] = [
     artist: 'obscure music', 
     url: 'https://opengameart.org/sites/default/files/cda98e895139.mp3', 
     category: 'chill' 
+  },
+  { 
+    id: '8', 
+    title: 'Cyberpunk City', 
+    artist: 'Eric Matyas', 
+    url: 'https://opengameart.org/sites/default/files/Cyberpunk%20City_0.mp3', 
+    category: 'cyberpunk' 
+  },
+  { 
+    id: '9', 
+    title: 'Cyberpunk Arcade 3', 
+    artist: 'Eric Matyas', 
+    url: 'https://opengameart.org/sites/default/files/cyberpunk_arcade_3_0.mp3', 
+    category: 'gaming' 
+  },
+  { 
+    id: '10', 
+    title: 'Cyberpunk Beauty', 
+    artist: 'Tarush Singhal', 
+    url: 'https://opengameart.org/sites/default/files/cyberpunk.mp3', 
+    category: 'chill' 
+  },
+  { 
+    id: '11', 
+    title: 'Cyberpunk Genesis', 
+    artist: 'Trevor Lentz', 
+    url: 'https://opengameart.org/sites/default/files/audio_preview/trevor_lentz_-_cyberpunk-_genesis_-_01_cyberpunk-_genesis.mp3', 
+    category: 'cyberpunk' 
+  },
+  { 
+    id: '12', 
+    title: 'Space Boss Battle', 
+    artist: 'MintoDog', 
+    url: 'https://opengameart.org/sites/default/files/space_boss_battle_bpm175.mp3', 
+    category: 'gaming' 
   }
 ];

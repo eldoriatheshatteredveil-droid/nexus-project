@@ -26,6 +26,14 @@ export const useAuth = () => {
     const devSession = localStorage.getItem('nexus_dev_session');
     if (devSession) {
       const devUser = JSON.parse(devSession);
+      
+      // Auto-migrate legacy username
+      if (devUser.username === 'NEXUS_ARCHITECT') {
+        devUser.username = 'NEXUS';
+        devUser.avatar_url = 'https://api.dicebear.com/7.x/bottts/svg?seed=NEXUS';
+        localStorage.setItem('nexus_dev_session', JSON.stringify(devUser));
+      }
+
       setUser(devUser);
       
       if (devUser.is_dev) {
@@ -92,10 +100,10 @@ export const useAuth = () => {
       const devUser: UserProfile = {
         id: 'NVious A.i.',
         email: 'dev@nexus.system',
-        username: 'NEXUS_ARCHITECT',
+        username: 'NEXUS',
         is_dev: true,
         kill_count: 99999,
-        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=NEXUS_ARCHITECT',
+        avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=NEXUS',
       };
       localStorage.setItem('nexus_dev_session', JSON.stringify(devUser));
       setUser(devUser);

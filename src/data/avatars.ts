@@ -2,30 +2,39 @@ export interface Avatar {
   id: string;
   name: string;
   minLevel: number;
-  url: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 }
 
 const generateAvatars = (): Avatar[] => {
   const avatars: Avatar[] = [];
-  const ranks = ['Initiate', 'Scout', 'Operator', 'Specialist', 'Veteran', 'Elite', 'Commander', 'Warlord', 'Overlord', 'Deity'];
   
   for (let i = 1; i <= 50; i++) {
     let rarity: Avatar['rarity'] = 'common';
-    if (i > 10) rarity = 'uncommon';
-    if (i > 25) rarity = 'rare';
-    if (i > 40) rarity = 'epic';
-    if (i === 50) rarity = 'legendary';
+    let name = `Organism Stage ${i}`;
 
-    const rankIndex = Math.floor((i - 1) / 5);
-    const rankName = ranks[rankIndex] || 'Unknown';
-    const subRank = (i - 1) % 5 + 1;
+    if (i >= 50) {
+      rarity = 'legendary';
+      name = 'APEX PREDATOR';
+    } else if (i >= 40) {
+      rarity = 'epic';
+      name = `Leviathan Class - Stage ${i - 39}`;
+    } else if (i >= 30) {
+      rarity = 'rare';
+      name = `Hunter Class - Stage ${i - 29}`;
+    } else if (i >= 20) {
+      rarity = 'uncommon';
+      name = `Chrysalis Class - Stage ${i - 19}`;
+    } else if (i >= 10) {
+      rarity = 'common';
+      name = `Larva Class - Stage ${i - 9}`;
+    } else {
+      name = `Spore Class - Stage ${i}`;
+    }
 
     avatars.push({
-      id: `avatar-${i}`,
-      name: `${rankName} Unit ${subRank.toString().padStart(2, '0')}`,
+      id: `evo-${i}`,
+      name: name,
       minLevel: i,
-      url: `https://api.dicebear.com/7.x/bottts/svg?seed=NEXUS_UNIT_${i}&backgroundColor=${i > 40 ? 'ff0000' : i > 25 ? '00ffd5' : 'transparent'}`,
       rarity
     });
   }

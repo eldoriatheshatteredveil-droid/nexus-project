@@ -1,9 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { useStore } from '../store';
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
-const PADDLE_WIDTH = 100;
+const BASE_PADDLE_WIDTH = 100;
 const PADDLE_HEIGHT = 15;
 const BALL_RADIUS = 6;
 const BRICK_ROW_COUNT = 6;
@@ -37,6 +38,13 @@ interface Brick {
 const NexusBreakout: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { playClick, playSwitch, playGunshot } = useCyberSound();
+  const { isEquipped } = useStore();
+
+  const isSlowTime = isEquipped('cheat_slow_time');
+  const isMagnet = isEquipped('cheat_magnet');
+
+  const PADDLE_WIDTH = isMagnet ? BASE_PADDLE_WIDTH * 1.5 : BASE_PADDLE_WIDTH;
+  const BALL_SPEED_MULTIPLIER = isSlowTime ? 0.7 : 1;
 
   const [gameState, setGameState] = useState<'MENU' | 'PLAYING' | 'GAMEOVER' | 'VICTORY'>('MENU');
   const [score, setScore] = useState(0);
@@ -45,7 +53,7 @@ const NexusBreakout: React.FC = () => {
   // Mutable game state
   const state = useRef({
     paddleX: (CANVAS_WIDTH - PADDLE_WIDTH) / 2,
-    ball: { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 30, dx: 4, dy: -4 },
+    ball: { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 30, dx: 4 * BALL_SPEED_MULTIPLIER, dy: -4 * BALL_SPEED_MULTIPLIER },
     bricks: [] as Brick[],
     particles: [] as Particle[],
     keys: { left: false, right: false }
@@ -73,8 +81,8 @@ const NexusBreakout: React.FC = () => {
     state.current.ball = {
       x: CANVAS_WIDTH / 2,
       y: CANVAS_HEIGHT - 40,
-      dx: 4 * (Math.random() > 0.5 ? 1 : -1),
-      dy: -4
+      dx: 4 * BALL_SPEED_MULTIPLIER * (Math.random() > 0.5 ? 1 : -1),
+      dy: -4 * BALL_SPEED_MULTIPLIER
     };
     state.current.paddleX = (CANVAS_WIDTH - PADDLE_WIDTH) / 2;
   };
@@ -311,7 +319,7 @@ const NexusBreakout: React.FC = () => {
     loop();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, lives, playSwitch, playGunshot]);
+  }, [gameState, lives, playSwitch, playGunshot, PADDLE_WIDTH]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (gameState !== 'PLAYING') return;

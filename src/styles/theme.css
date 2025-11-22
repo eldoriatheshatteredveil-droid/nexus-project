@@ -1,85 +1,76 @@
+:root {
+    --color-primary: 0 255 213;
+    --color-secondary: 255 102 204;
+    --color-background: 10 10 10;
+    --color-card: 26 26 26;
+    --color-text: 224 224 224;
+    --color-accent: 255 204 0;
+    
+    /* AAA Glow Effects - Default (Cyan) */
+    --glow-primary: 0 0 5px rgba(0, 255, 213, 0.4), 0 0 10px rgba(0, 255, 213, 0.2);
+    --glow-secondary: 0 0 5px rgba(255, 102, 204, 0.4), 0 0 10px rgba(255, 102, 204, 0.2);
+    --glow-box-primary: 0 0 8px rgba(0, 255, 213, 0.1), inset 0 0 5px rgba(0, 255, 213, 0.05);
+    --glow-text-strong: 0 0 3px rgba(0, 255, 213, 0.6), 0 0 8px rgba(0, 255, 213, 0.3);
+}
+
 body {
-    background-color: #0f0f0f;
-    color: #e0e0e0;
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-text));
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
+/* Global Glow Utilities */
+.text-glow {
+    text-shadow: var(--glow-primary);
 }
 
-a {
-    color: #00ffcc;
-    text-decoration: none;
-    transition: color 0.3s;
+.text-glow-strong {
+    text-shadow: var(--glow-text-strong);
 }
 
-a:hover {
-    color: #ff00ff;
+.box-glow {
+    box-shadow: var(--glow-box-primary);
 }
 
-.header {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
+.border-glow {
+    border-color: rgb(var(--color-primary));
+    box-shadow: 0 0 10px rgba(var(--color-primary), 0.3);
 }
 
-.footer {
-    background: rgba(20, 20, 20, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    position: relative;
-    bottom: 0;
-    width: 100%;
+/* ...existing code... */
+
+/* PRESTIGE GOLD THEME OVERRIDES */
+.theme-gold {
+    --color-primary: 255 215 0;
+    --color-secondary: 184 134 11;
+    --color-background: 5 5 0;
+    --color-text: 255 248 225;
+    --gold-glow: rgba(255, 215, 0, 0.3);
+    
+    --glow-primary: 0 0 5px rgba(255, 215, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.2);
+    --glow-secondary: 0 0 5px rgba(184, 134, 11, 0.4);
+    --glow-box-primary: 0 0 10px rgba(255, 215, 0, 0.15), inset 0 0 8px rgba(255, 215, 0, 0.05);
+    --glow-text-strong: 0 0 3px rgba(255, 215, 0, 0.7), 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
-.game-card {
-    background: rgba(30, 30, 30, 0.7);
-    border-radius: 10px;
-    padding: 15px;
-    transition: transform 0.3s;
+.theme-gold .text-primary,
+.theme-gold .text-cyan-400,
+.theme-gold .text-cyan-500 {
+    text-shadow: var(--glow-primary);
 }
 
-.game-card:hover {
-    transform: scale(1.05);
-}
-
-.button {
-    background-color: #00ffcc;
-    border: none;
-    border-radius: 5px;
-    color: #000;
-    cursor: pointer;
-    padding: 10px 20px;
-    transition: background-color 0.3s;
-}
-
-.button:hover {
-    background-color: #ff00ff;
-}
-
-.glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    backdrop-filter: blur(15px);
-    padding: 20px;
-}
-
-.animation-fade {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+/* MATRIX THEME OVERRIDES */
+.theme-matrix {
+    --color-primary: 0 255 0;
+    --color-secondary: 0 51 0;
+    --color-background: 0 0 0;
+    --color-text: 0 255 0;
+    
+    --glow-primary: 0 0 4px rgba(0, 255, 0, 0.6), 0 0 8px rgba(0, 255, 0, 0.3);
+    --glow-secondary: 0 0 3px rgba(0, 100, 0, 0.6);
+    --glow-box-primary: 0 0 5px rgba(0, 255, 0, 0.15), inset 0 0 3px rgba(0, 255, 0, 0.05);
+    --glow-text-strong: 0 0 3px rgba(0, 255, 0, 0.8), 0 0 6px rgba(0, 255, 0, 0.5);
 }

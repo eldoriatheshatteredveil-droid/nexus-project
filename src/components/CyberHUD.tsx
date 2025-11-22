@@ -17,7 +17,7 @@ const HexColumn: React.FC<{ x: string; speed: number; delay: number }> = ({ x, s
 
   return (
     <div 
-      className="absolute top-0 text-[10px] font-mono text-[#00ffd5]/20 flex flex-col leading-none select-none"
+      className="absolute top-0 text-[10px] font-mono text-[rgb(var(--color-primary))]/20 flex flex-col leading-none select-none"
       style={{ left: x, animation: `fadeIn 1s ${delay}s forwards` }}
     >
       {chars.map((char, i) => (
@@ -40,8 +40,8 @@ const SystemWidget: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-8 left-8 p-4 border border-[#00ffd5]/20 bg-black/40 backdrop-blur-sm rounded-lg w-48 font-mono text-xs z-0 hidden md:block">
-      <div className="flex items-center justify-between mb-2 text-[#00ffd5]">
+    <div className="fixed bottom-8 left-8 p-4 glassmorphic rounded-lg w-48 font-mono text-xs z-0 hidden md:block">
+      <div className="flex items-center justify-between mb-2 text-[rgb(var(--color-primary))] text-glow">
         <span className="flex items-center gap-2"><Activity size={14} /> SYS.MONITOR</span>
         <span className="animate-pulse">ONLINE</span>
       </div>
@@ -52,9 +52,9 @@ const SystemWidget: React.FC = () => {
             <span>CPU_CORE_01</span>
             <span>{cpu.toFixed(0)}%</span>
           </div>
-          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1 bg-gray-800 rounded-full overflow-hidden box-glow">
             <div 
-              className="h-full bg-[#00ffd5] transition-all duration-500"
+              className="h-full bg-[rgb(var(--color-primary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-primary))]"
               style={{ width: `${cpu}%` }}
             />
           </div>
@@ -65,9 +65,9 @@ const SystemWidget: React.FC = () => {
             <span>MEM_ALLOC</span>
             <span>{mem.toFixed(0)}%</span>
           </div>
-          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1 bg-gray-800 rounded-full overflow-hidden box-glow">
             <div 
-              className="h-full bg-[#ff66cc] transition-all duration-500"
+              className="h-full bg-[rgb(var(--color-secondary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-secondary))]"
               style={{ width: `${mem}%` }}
             />
           </div>
@@ -79,8 +79,8 @@ const SystemWidget: React.FC = () => {
 
 const NetworkWidget: React.FC = () => {
   return (
-    <div className="fixed bottom-8 right-8 p-4 border border-[#ff66cc]/20 bg-black/40 backdrop-blur-sm rounded-lg w-48 font-mono text-xs z-0 hidden md:block text-right">
-      <div className="flex items-center justify-end gap-2 mb-2 text-[#ff66cc]">
+    <div className="fixed bottom-8 right-8 p-4 glassmorphic rounded-lg w-48 font-mono text-xs z-0 hidden md:block text-right">
+      <div className="flex items-center justify-end gap-2 mb-2 text-[rgb(var(--color-secondary))] text-glow">
         <span className="animate-pulse">NET.UPLINK</span>
         <Wifi size={14} />
       </div>
@@ -92,11 +92,11 @@ const NetworkWidget: React.FC = () => {
         </div>
         <div className="flex justify-end gap-2">
           <span>LATENCY:</span>
-          <span className="text-[#00ffd5]">{Math.floor(Math.random() * 20 + 10)}ms</span>
+          <span className="text-[rgb(var(--color-primary))] text-glow">{Math.floor(Math.random() * 20 + 10)}ms</span>
         </div>
         <div className="flex justify-end gap-2">
           <span>ENCRYPTION:</span>
-          <span className="text-[#ff66cc]">AES-4096</span>
+          <span className="text-[rgb(var(--color-secondary))] text-glow">AES-4096</span>
         </div>
       </div>
     </div>
@@ -117,7 +117,7 @@ const CyberHUD: React.FC = () => {
       <NetworkWidget />
 
       {/* Scanner Line */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00ffd5]/5 to-transparent h-[20vh] w-full animate-scan" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[rgb(var(--color-primary))]/5 to-transparent h-[20vh] w-full animate-scan" />
       
       {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.4)_100%)]" />

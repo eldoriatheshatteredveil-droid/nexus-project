@@ -10,10 +10,12 @@ import About from './pages/About';
 import PlayGame from './pages/PlayGame';
 import Profile from './pages/Profile';
 import SimulatedEmail from './pages/SimulatedEmail';
+import ThemeManager from './components/ThemeManager';
 
 const App: React.FC = () => {
   return (
     <Router>
+      <ThemeManager />
       <Routes>
         {/* Game Route - No Layout */}
         <Route path="/play/:gameId" element={<PlayGame />} />

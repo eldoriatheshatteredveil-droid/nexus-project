@@ -27,8 +27,8 @@ const Storefront: React.FC = () => {
     <div className="min-h-screen text-white p-6 pb-24 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#00ffd5]/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#ff66cc]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-12">
@@ -37,7 +37,7 @@ const Storefront: React.FC = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-3xl overflow-hidden border border-[#00ffd5]/30 group cursor-pointer"
+          className="relative rounded-3xl overflow-hidden border border-primary/30 group cursor-pointer"
           onClick={() => setSelectedGameId(featuredGame.id)}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
@@ -48,7 +48,7 @@ const Storefront: React.FC = () => {
           />
           
           <div className="relative z-20 p-8 md:p-16 max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00ffd5]/20 border border-[#00ffd5]/50 text-[#00ffd5] text-sm font-mono animate-pulse">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/50 text-primary text-sm font-mono animate-pulse">
               <Zap size={14} />
               <span>NEXUS SELECT // FEATURED</span>
             </div>
@@ -72,7 +72,7 @@ const Storefront: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-[#00ffd5] text-black font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(0,255,213,0.4)] hover:shadow-[0_0_40px_rgba(0,255,213,0.6)] transition-shadow flex items-center gap-3"
+              className="px-8 py-4 bg-primary text-black font-bold text-lg rounded-xl shadow-[0_0_20px_rgb(var(--color-primary)/0.4)] hover:shadow-[0_0_40px_rgb(var(--color-primary)/0.6)] transition-shadow flex items-center gap-3"
             >
               <Gamepad2 className="w-6 h-6" />
               PLAY NOW
@@ -109,13 +109,13 @@ const Storefront: React.FC = () => {
 
           {/* Search */}
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#00ffd5] transition-colors" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary transition-colors" size={18} />
             <input
               type="text"
               placeholder="Search the Nexus..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#00ffd5]/50 focus:ring-1 focus:ring-[#00ffd5]/50 transition-all"
+              className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ const Storefront: React.FC = () => {
 
         {filteredGames.length === 0 && (
           <div className="text-center py-24 text-gray-500">
-            <p className="text-2xl font-mono mb-2 text-[#ff0055]">NO SIGNALS DETECTED</p>
+            <p className="text-2xl font-mono mb-2 text-secondary">NO SIGNALS DETECTED</p>
             <p className="text-sm font-mono">ADJUST SEARCH PARAMETERS TO RE-ESTABLISH UPLINK.</p>
           </div>
         )}

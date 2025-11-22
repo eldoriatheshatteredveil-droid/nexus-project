@@ -12,7 +12,7 @@ import CustomDropdown from '../components/CustomDropdown';
 const Upload: React.FC = () => {
   const { playHover, playClick, playSwitch } = useCyberSound();
   const addGame = useStore((state) => state.addGame);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   
   const [dragActive, setDragActive] = useState(false);
@@ -25,11 +25,22 @@ const Upload: React.FC = () => {
   const [gameUrl, setGameUrl] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00ffd5]"></div>
+      </div>
+    );
+  }
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -69,11 +80,25 @@ const Upload: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     playClick();
+    setError('');
 
-    if (!user) return;
+    if (!user) {
+      setError('User authentication lost. Please login again.');
+      return;
+    }
+
+    if (!title.trim()) {
+      setError('Project Title is required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate network delay for realism
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const newGame: Game = {
       id: `game-${Date.now()}`,
@@ -95,6 +120,7 @@ const Upload: React.FC = () => {
     };
 
     addGame(newGame);
+    setIsSubmitting(false);
     navigate('/');
   };
 
@@ -323,13 +349,29 @@ const Upload: React.FC = () => {
             </div>
 
             {/* Submit Button */}
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 text-sm font-mono text-center">
+                ERROR: {error}
+              </div>
+            )}
+            
             <button 
               onClick={handleSubmit}
-              className="w-full py-4 bg-[#00ffd5] text-black font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(0,255,213,0.4)] hover:shadow-[0_0_40px_rgba(0,255,213,0.6)] hover:scale-[1.02] transition-all flex items-center justify-center gap-3 group"
+              disabled={isSubmitting}
+              className={`w-full py-4 bg-[#00ffd5] text-black font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(0,255,213,0.4)] hover:shadow-[0_0_40px_rgba(0,255,213,0.6)] hover:scale-[1.02] transition-all flex items-center justify-center gap-3 group ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               onMouseEnter={playHover}
             >
-              <Save className="group-hover:animate-bounce" />
-              DEPLOY TO NEXUS
+              {isSubmitting ? (
+                <>
+                  <Zap className="animate-spin" />
+                  DEPLOYING...
+                </>
+              ) : (
+                <>
+                  <Save className="group-hover:animate-bounce" />
+                  DEPLOY TO NEXUS
+                </>
+              )}
             </button>
           </motion.div>
         </div>

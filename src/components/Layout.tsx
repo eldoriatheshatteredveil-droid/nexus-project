@@ -10,6 +10,9 @@ import CyberHUD from './CyberHUD';
 import CyberCursor from './CyberCursor';
 import OrbMenu from './OrbMenu';
 import MusicPlayer from './MusicPlayer';
+import Terminal from './Terminal';
+import BlackMarket from './BlackMarket';
+import FactionSelector from './FactionSelector';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
@@ -24,10 +27,36 @@ interface BulletHole {
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const lenisRef = useRef<Lenis | null>(null);
-  const { playGunshot } = useCyberSound();
+  const { playGunshot, playSwitch } = useCyberSound();
   const [bulletHoles, setBulletHoles] = useState<BulletHole[]>([]);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [isBlackMarketOpen, setIsBlackMarketOpen] = useState(false);
+  const [isFactionSelectorOpen, setIsFactionSelectorOpen] = useState(false);
+  
   const incrementPlayTime = useStore((state) => state.incrementPlayTime);
+  const faction = useStore((state) => state.faction);
   const { user } = useAuth();
+
+  // Check for faction selection
+  useEffect(() => {
+    if (!faction) {
+      const timer = setTimeout(() => setIsFactionSelectorOpen(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [faction]);
+
+  // Terminal Toggle Key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault();
+        setIsTerminalOpen(prev => !prev);
+        playSwitch();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [playSwitch]);
 
   // Track playtime for XP (only for non-devs)
   useEffect(() => {
@@ -85,7 +114,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div 
-      className="min-h-screen bg-[#07070b] text-white relative overflow-hidden flex flex-col cursor-none"
+      className="min-h-screen bg-[rgb(var(--color-bg))] text-[rgb(var(--color-text))] relative overflow-hidden flex flex-col cursor-none transition-colors duration-500"
       onClick={handleGlobalClick}
     >
       <HeroWebGLBackground />
@@ -93,7 +122,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <CyberDecorations />
       <CyberHUD />
       <CyberCreatures />
-      <Header />
+      <Header 
+        onOpenTerminal={() => setIsTerminalOpen(true)}
+        onOpenBlackMarket={() => setIsBlackMarketOpen(true)}
+      />
 
       <main className="relative z-20 flex-grow pt-28">{children}</main>
 
@@ -129,6 +161,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <CyberCursor />
       <OrbMenu />
       <MusicPlayer />
+      
+      {/* Overlays */}
+      <Terminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} />
+      <BlackMarket isOpen={isBlackMarketOpen} onClose={() => setIsBlackMarketOpen(false)} />
+      <FactionSelector isOpen={isFactionSelectorOpen} onClose={() => setIsFactionSelectorOpen(false)} />
     </div>
   );
 };

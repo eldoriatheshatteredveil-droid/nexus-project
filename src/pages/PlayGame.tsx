@@ -10,6 +10,7 @@ import NexusPong from '../components/NexusPong';
 import NexusBreakout from '../components/NexusBreakout';
 import VoidVanguard from '../components/VoidVanguard';
 import CyberCursor from '../components/CyberCursor';
+import MultiplayerLobby from '../components/MultiplayerLobby';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useAuth } from '../hooks/useAuth';
 
@@ -22,6 +23,7 @@ const PlayGame: React.FC = () => {
   const { playClick, playHover } = useCyberSound();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showLobby, setShowLobby] = useState(true);
   const [systemTime, setSystemTime] = useState(new Date().toLocaleTimeString());
 
   useEffect(() => {
@@ -132,6 +134,16 @@ const PlayGame: React.FC = () => {
           </div>
           
           <button 
+            onClick={() => setShowLobby(!showLobby)}
+            onMouseEnter={playHover}
+            className={`hidden lg:flex items-center gap-2 px-3 py-1 rounded border transition-all ${
+              showLobby ? 'bg-[#00ffd5]/20 border-[#00ffd5] text-[#00ffd5]' : 'border-white/10 text-gray-400 hover:text-white'
+            }`}
+          >
+            <span className="text-xs font-bold">LOBBY</span>
+          </button>
+
+          <button 
             onClick={toggleFullscreen}
             onMouseEnter={playHover}
             className="p-2 text-gray-400 hover:text-[#00ffd5] border border-white/10 hover:border-[#00ffd5] hover:bg-[#00ffd5]/10 rounded transition-all duration-300"
@@ -143,66 +155,79 @@ const PlayGame: React.FC = () => {
       </header>
 
       {/* Main Game Area */}
-      <main className="flex-grow relative z-10 flex items-center justify-center p-4 md:p-8">
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative w-full max-w-6xl bg-black/60 border border-[#00ffd5]/30 rounded-xl shadow-[0_0_50px_rgba(0,255,213,0.05)] backdrop-blur-sm overflow-hidden"
-        >
-          {/* Decorative Corner Accents */}
-          <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#00ffd5] rounded-tl-xl opacity-50" />
-          <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#00ffd5] rounded-tr-xl opacity-50" />
-          <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-[#00ffd5] rounded-bl-xl opacity-50" />
-          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#00ffd5] rounded-br-xl opacity-50" />
+      <main className="flex-grow relative z-10 flex overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="relative w-full max-w-6xl bg-black/60 border border-[#00ffd5]/30 rounded-xl shadow-[0_0_50px_rgba(0,255,213,0.05)] backdrop-blur-sm overflow-hidden"
+          >
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#00ffd5] rounded-tl-xl opacity-50" />
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-[#00ffd5] rounded-tr-xl opacity-50" />
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-[#00ffd5] rounded-bl-xl opacity-50" />
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#00ffd5] rounded-br-xl opacity-50" />
 
-          {/* Inner Frame Glow */}
-          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,255,213,0.05)] pointer-events-none" />
+            {/* Inner Frame Glow */}
+            <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,255,213,0.05)] pointer-events-none" />
 
-          {/* Game Content Wrapper */}
-          <div className="p-8 md:p-12 flex justify-center min-h-[600px] items-center relative z-10 w-full h-full">
-            {game.id === 'nvious-snake' && <SnakeGame />}
-            {game.id === 'nvious-cyber-guess' && <GuessNumberGame />}
-            {game.id === 'nvious-20-questions' && <TwentyQuestionsGame />}
-            {game.id === 'nexus-pong' && <NexusPong playerName={user?.username || 'PLAYER'} />}
-            {game.id === 'nexus-breakout' && <NexusBreakout />}
-            {game.id === 'void-vanguard' && <VoidVanguard />}
-            
-            {/* Handle External/Uploaded Games */}
-            {game.type === 'browser' && game.embedUrl && (
-              <div className="w-full h-full min-h-[600px] bg-black">
-                <iframe 
-                  src={game.embedUrl} 
-                  className="w-full h-full border-0"
-                  title={game.title}
-                  allowFullScreen
-                />
-              </div>
-            )}
-            
-            {game.type === 'download' && (
-              <div className="text-center space-y-6">
-                <div className="w-24 h-24 mx-auto bg-[#00ffd5]/10 rounded-full flex items-center justify-center border border-[#00ffd5]/30 animate-pulse">
-                  <Cpu size={48} className="text-[#00ffd5]" />
+            {/* Game Content Wrapper */}
+            <div className="p-8 md:p-12 flex justify-center min-h-[600px] items-center relative z-10 w-full h-full">
+              {game.id === 'nvious-snake' && <SnakeGame />}
+              {game.id === 'nvious-cyber-guess' && <GuessNumberGame />}
+              {game.id === 'nvious-20-questions' && <TwentyQuestionsGame />}
+              {game.id === 'nexus-pong' && <NexusPong playerName={user?.username || 'PLAYER'} />}
+              {game.id === 'nexus-breakout' && <NexusBreakout />}
+              {game.id === 'void-vanguard' && <VoidVanguard />}
+              
+              {/* Handle External/Uploaded Games */}
+              {game.type === 'browser' && game.embedUrl && (
+                <div className="w-full h-full min-h-[600px] bg-black">
+                  <iframe 
+                    src={game.embedUrl} 
+                    className="w-full h-full border-0"
+                    title={game.title}
+                    allowFullScreen
+                  />
                 </div>
-                <h2 className="text-2xl font-bold text-white">DOWNLOAD REQUIRED</h2>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  This simulation requires a local neural link. Please download the executable to proceed.
-                </p>
-                <a 
-                  href={game.downloadUrl || '#'} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#00ffd5] text-black font-bold rounded hover:bg-white transition-all"
-                >
-                  DOWNLOAD BUILD v1.0
-                </a>
-              </div>
-            )}
-          </div>
+              )}
+              
+              {game.type === 'download' && (
+                <div className="text-center space-y-6">
+                  <div className="w-24 h-24 mx-auto bg-[#00ffd5]/10 rounded-full flex items-center justify-center border border-[#00ffd5]/30 animate-pulse">
+                    <Cpu size={48} className="text-[#00ffd5]" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">DOWNLOAD REQUIRED</h2>
+                  <p className="text-gray-400 max-w-md mx-auto">
+                    This simulation requires a local neural link. Please download the executable to proceed.
+                  </p>
+                  <a 
+                    href={game.downloadUrl || '#'} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-[#00ffd5] text-black font-bold rounded hover:bg-white transition-all"
+                  >
+                    DOWNLOAD BUILD v1.0
+                  </a>
+                </div>
+              )}
+            </div>
 
-          {/* CRT Scanline Overlay for the Game Frame */}
-          <div className="pointer-events-none absolute inset-0 z-20 opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))]" style={{ backgroundSize: "100% 2px, 3px 100%" }} />
+            {/* CRT Scanline Overlay for the Game Frame */}
+            <div className="pointer-events-none absolute inset-0 z-20 opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))]" style={{ backgroundSize: "100% 2px, 3px 100%" }} />
+          </motion.div>
+        </div>
+
+        {/* Multiplayer Lobby Sidebar */}
+        <motion.div 
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: showLobby ? 300 : 0, opacity: showLobby ? 1 : 0 }}
+          className="hidden lg:block h-full border-l border-[#00ffd5]/20 bg-black/40 backdrop-blur-md overflow-hidden"
+        >
+          <div className="w-[300px] h-full">
+            <MultiplayerLobby gameId={game.id} />
+          </div>
         </motion.div>
       </main>
 

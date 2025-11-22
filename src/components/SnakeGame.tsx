@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { useStore } from '../store';
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
@@ -7,6 +8,7 @@ const INITIAL_SPEED = 150;
 
 const SnakeGame: React.FC = () => {
   const { playClick, playSwitch } = useCyberSound();
+  const { updateHighScore, isEquipped } = useStore();
   const [snake, setSnake] = useState<{ x: number; y: number }[]>([{ x: 10, y: 10 }]);
   const [food, setFood] = useState<{ x: number; y: number }>({ x: 15, y: 15 });
   const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT');
@@ -14,6 +16,10 @@ const SnakeGame: React.FC = () => {
   const [score, setScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const gameLoopRef = useRef<number | null>(null);
+
+  // Cheats
+  const isSlowTime = isEquipped('cheat_slow_time');
+  const currentSpeed = isSlowTime ? INITIAL_SPEED * 1.5 : INITIAL_SPEED; // 50% slower (higher interval)
 
   const generateFood = () => {
     return {
@@ -31,6 +37,12 @@ const SnakeGame: React.FC = () => {
     setIsPlaying(true);
     playClick();
   };
+
+  useEffect(() => {
+    if (gameOver) {
+      updateHighScore('nvious-snake', score);
+    }
+  }, [gameOver, score, updateHighScore]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,9 +117,9 @@ const SnakeGame: React.FC = () => {
       });
     };
 
-    const interval = setInterval(moveSnake, INITIAL_SPEED);
+    const interval = setInterval(moveSnake, currentSpeed);
     return () => clearInterval(interval);
-  }, [direction, isPlaying, gameOver, food, playSwitch]);
+  }, [direction, isPlaying, gameOver, food, playSwitch, currentSpeed]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-black/50 rounded-xl border border-[#00ffd5]/30 backdrop-blur-sm">

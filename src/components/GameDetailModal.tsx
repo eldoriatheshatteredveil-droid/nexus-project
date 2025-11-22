@@ -93,13 +93,13 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-4xl bg-[#0a0a0a] border border-[#00ffd5]/30 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,255,213,0.1)] z-10 max-h-[90vh] flex flex-col"
+            className="relative w-full max-w-4xl bg-[#0a0a0a] border border-primary/30 rounded-2xl overflow-hidden shadow-[0_0_50px_rgb(var(--color-primary)/0.1)] z-10 max-h-[90vh] flex flex-col"
           >
             {/* Header / Close Button */}
             <div className="absolute top-4 right-4 z-20">
               <button
                 onClick={handleClose}
-                className="p-2 rounded-full bg-black/50 hover:bg-[#00ffd5]/20 text-white hover:text-[#00ffd5] transition-colors border border-white/10 hover:border-[#00ffd5]/50"
+                className="p-2 rounded-full bg-black/50 hover:bg-primary/20 text-white hover:text-primary transition-colors border border-white/10 hover:border-primary/50"
               >
                 <X size={24} />
               </button>
@@ -107,7 +107,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
 
             <div className="flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
               {/* Left Column: Media / Game Area */}
-              <div className="w-full md:w-2/3 bg-black relative min-h-[300px] md:min-h-full flex items-center justify-center border-b md:border-b-0 md:border-r border-[#00ffd5]/20">
+              <div className="w-full md:w-2/3 bg-black relative min-h-[300px] md:min-h-full flex items-center justify-center border-b md:border-b-0 md:border-r border-primary/20">
                 <div className="relative w-full h-full">
                   <img 
                     src={game.cover} 
@@ -120,7 +120,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                     <div className="absolute inset-0 flex items-center justify-center">
                       <button
                         onClick={handlePlayClick}
-                        className="group relative px-8 py-4 bg-[#00ffd5] text-black font-bold text-xl rounded-full overflow-hidden hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,255,213,0.5)]"
+                        className="group relative px-8 py-4 bg-primary text-black font-bold text-xl rounded-full overflow-hidden hover:scale-105 transition-transform shadow-[0_0_20px_rgb(var(--color-primary)/0.5)]"
                       >
                         <span className="relative z-10 flex items-center gap-2">
                           <Play fill="currentColor" /> PLAY NOW
@@ -136,7 +136,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
               <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 bg-[#0a0a0a]">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-bold bg-[#00ffd5]/10 text-[#00ffd5] rounded border border-[#00ffd5]/20">
+                    <span className="px-2 py-1 text-xs font-bold bg-primary/10 text-primary rounded border border-primary/20">
                       {game.category.toUpperCase()}
                     </span>
                     {game.tags.map(tag => (
@@ -154,7 +154,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                   </div>
                   {game.uploaderName && (
                     <div className="mt-2 text-xs text-gray-500 font-mono">
-                      UPLOADED BY: <span className="text-[#00ffd5]">{game.uploaderName}</span>
+                      UPLOADED BY: <span className="text-primary">{game.uploaderName}</span>
                     </div>
                   )}
                 </div>
@@ -177,14 +177,14 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                           placeholder="Subject..."
                           value={messageSubject}
                           onChange={(e) => setMessageSubject(e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-[#00ffd5] outline-none"
+                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-primary outline-none"
                           required
                         />
                         <textarea
                           placeholder="Message content..."
                           value={messageContent}
                           onChange={(e) => setMessageContent(e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-[#00ffd5] outline-none resize-none"
+                          className="w-full bg-black/50 border border-white/10 rounded p-2 text-xs text-white focus:border-primary outline-none resize-none"
                           rows={3}
                           required
                         />
@@ -198,7 +198,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                           </button>
                           <button
                             type="submit"
-                            className="flex-1 py-1 bg-[#00ffd5] text-black text-xs font-bold rounded hover:bg-[#00ffd5]/80"
+                            className="flex-1 py-1 bg-primary text-black text-xs font-bold rounded hover:bg-primary/80"
                           >
                             Send
                           </button>
@@ -226,14 +226,14 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                 <div className="mt-auto space-y-4">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-gray-400">Price</span>
-                    <span className="text-2xl font-bold text-[#00ffd5]">
+                    <span className="text-2xl font-bold text-primary">
                       {game.price === 0 ? 'FREE' : `$${game.price}`}
                     </span>
                   </div>
 
                   <button
                     onClick={handleDownloadClick}
-                    className="w-full py-3 bg-[#00ffd5] text-black font-bold rounded hover:bg-white transition-all flex items-center justify-center gap-2 group"
+                    className="w-full py-3 bg-primary text-black font-bold rounded hover:bg-white transition-all flex items-center justify-center gap-2 group"
                   >
                     <Download size={20} className="group-hover:animate-bounce" />
                     DOWNLOAD NOW
