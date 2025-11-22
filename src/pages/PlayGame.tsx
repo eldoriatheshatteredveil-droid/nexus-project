@@ -11,12 +11,14 @@ import NexusBreakout from '../components/NexusBreakout';
 import VoidVanguard from '../components/VoidVanguard';
 import CyberCursor from '../components/CyberCursor';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { useAuth } from '../hooks/useAuth';
 
 const PlayGame: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const games = useStore((state) => state.games);
   const game = games.find((g) => g.id === gameId);
+  const { user } = useAuth();
   const { playClick, playHover } = useCyberSound();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -158,13 +160,45 @@ const PlayGame: React.FC = () => {
           <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,255,213,0.05)] pointer-events-none" />
 
           {/* Game Content Wrapper */}
-          <div className="p-8 md:p-12 flex justify-center min-h-[600px] items-center relative z-10">
+          <div className="p-8 md:p-12 flex justify-center min-h-[600px] items-center relative z-10 w-full h-full">
             {game.id === 'nvious-snake' && <SnakeGame />}
             {game.id === 'nvious-cyber-guess' && <GuessNumberGame />}
             {game.id === 'nvious-20-questions' && <TwentyQuestionsGame />}
-            {game.id === 'nexus-pong' && <NexusPong />}
+            {game.id === 'nexus-pong' && <NexusPong playerName={user?.username || 'PLAYER'} />}
             {game.id === 'nexus-breakout' && <NexusBreakout />}
             {game.id === 'void-vanguard' && <VoidVanguard />}
+            
+            {/* Handle External/Uploaded Games */}
+            {game.type === 'browser' && game.embedUrl && (
+              <div className="w-full h-full min-h-[600px] bg-black">
+                <iframe 
+                  src={game.embedUrl} 
+                  className="w-full h-full border-0"
+                  title={game.title}
+                  allowFullScreen
+                />
+              </div>
+            )}
+            
+            {game.type === 'download' && (
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 mx-auto bg-[#00ffd5]/10 rounded-full flex items-center justify-center border border-[#00ffd5]/30 animate-pulse">
+                  <Cpu size={48} className="text-[#00ffd5]" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">DOWNLOAD REQUIRED</h2>
+                <p className="text-gray-400 max-w-md mx-auto">
+                  This simulation requires a local neural link. Please download the executable to proceed.
+                </p>
+                <a 
+                  href={game.downloadUrl || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[#00ffd5] text-black font-bold rounded hover:bg-white transition-all"
+                >
+                  DOWNLOAD BUILD v1.0
+                </a>
+              </div>
+            )}
           </div>
 
           {/* CRT Scanline Overlay for the Game Frame */}

@@ -9,7 +9,12 @@ const BALL_SIZE = 10;
 const PADDLE_SPEED = 8;
 const INITIAL_BALL_SPEED = 5;
 
-const NexusPong: React.FC = () => {
+interface NexusPongProps {
+  playerName?: string;
+  opponentName?: string;
+}
+
+const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentName = 'CPU' }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { playClick, playSwitch } = useCyberSound();
   
@@ -235,8 +240,8 @@ const NexusPong: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-black/50 rounded-xl border border-[#00ffd5]/30 backdrop-blur-sm">
       <div className="mb-4 flex justify-between w-full max-w-[800px] text-[#00ffd5] font-mono text-xl">
-        <span className="text-[#00ffd5]">PLAYER: {score.player}</span>
-        <span className="text-[#ff0055]">CPU: {score.ai}</span>
+        <span className="text-[#00ffd5]">{playerName}: {score.player}</span>
+        <span className="text-[#ff0055]">{opponentName}: {score.ai}</span>
       </div>
 
       <div className="relative">

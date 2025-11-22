@@ -12,6 +12,9 @@ export interface Game {
   category: 'ai' | 'dev' | 'nvious';
   uploaderId?: string;
   uploaderName?: string;
+  type?: 'browser' | 'download';
+  embedUrl?: string;
+  downloadUrl?: string;
 }
 
 export const GENRES = [

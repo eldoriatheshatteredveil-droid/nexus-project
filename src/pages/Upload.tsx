@@ -21,6 +21,8 @@ const Upload: React.FC = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'ai' | 'dev'>('ai');
   const [genre, setGenre] = useState(GENRES[0]);
+  const [gameType, setGameType] = useState<'browser' | 'download'>('browser');
+  const [gameUrl, setGameUrl] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +46,15 @@ const Upload: React.FC = () => {
     e.stopPropagation();
     setDragActive(false);
     playSwitch();
-    // Handle file drop logic here
+    
+    // Simulate file handling by setting a fake download URL if one isn't provided
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (!gameUrl) {
+        setGameUrl(`https://nexus-storage.system/files/${file.name}`);
+        setGameType('download');
+      }
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +88,10 @@ const Upload: React.FC = () => {
       downloads: 0,
       category: category,
       uploaderId: user.id,
-      uploaderName: user.username
+      uploaderName: user.username,
+      type: gameType,
+      embedUrl: gameType === 'browser' ? gameUrl : undefined,
+      downloadUrl: gameType === 'download' ? gameUrl : undefined
     };
 
     addGame(newGame);
@@ -127,27 +140,65 @@ const Upload: React.FC = () => {
             className="flex-1 space-y-6"
           >
             {/* File Upload Zone */}
-            <div 
-              className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 group overflow-hidden ${
-                dragActive 
-                  ? "border-[#00ffd5] bg-[#00ffd5]/5 shadow-[0_0_30px_rgba(0,255,213,0.15)]" 
-                  : "border-white/10 hover:border-[#00ffd5]/50 bg-black/40 backdrop-blur-sm"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,255,213,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              
-              <div className="relative z-10">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#00ffd5]/20 to-[#ff66cc]/20 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                  <FileCode className="w-10 h-10 text-[#00ffd5]" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2 font-orbitron">DROP GAME BUILD</h3>
-                <p className="text-sm text-gray-400 font-mono">.ZIP .RAR .EXE (MAX 5GB)</p>
+            <div className="space-y-4">
+              <div className="flex gap-4 bg-black/40 p-1 rounded-xl border border-white/10">
+                <button
+                  onClick={() => setGameType('browser')}
+                  className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${
+                    gameType === 'browser' ? 'bg-[#00ffd5] text-black' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  WEB EMBED (URL)
+                </button>
+                <button
+                  onClick={() => setGameType('download')}
+                  className={`flex-1 py-3 rounded-lg text-xs font-bold transition-all ${
+                    gameType === 'download' ? 'bg-[#00ffd5] text-black' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  DOWNLOADABLE BUILD
+                </button>
               </div>
-              <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={playSwitch} />
+
+              {gameType === 'download' ? (
+                <div 
+                  className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 group overflow-hidden ${
+                    dragActive 
+                      ? "border-[#00ffd5] bg-[#00ffd5]/5 shadow-[0_0_30px_rgba(0,255,213,0.15)]" 
+                      : "border-white/10 hover:border-[#00ffd5]/50 bg-black/40 backdrop-blur-sm"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,255,213,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  
+                  <div className="relative z-10">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#00ffd5]/20 to-[#ff66cc]/20 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      <FileCode className="w-10 h-10 text-[#00ffd5]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2 font-orbitron">DROP GAME BUILD</h3>
+                    <p className="text-sm text-gray-400 font-mono">.ZIP .RAR .EXE (MAX 5GB)</p>
+                  </div>
+                  <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={playSwitch} />
+                </div>
+              ) : (
+                <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8 space-y-4">
+                  <label className="flex items-center gap-2 text-xs font-bold text-[#00ffd5] uppercase tracking-wider select-none">
+                    <Zap size={14} /> Game Embed URL
+                  </label>
+                  <input 
+                    type="text" 
+                    className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#00ffd5] focus:shadow-[0_0_15px_rgba(0,255,213,0.2)] transition-all font-mono"
+                    placeholder="https://itch.io/embed/..."
+                    value={gameUrl}
+                    onChange={(e) => setGameUrl(e.target.value)}
+                    onFocus={playHover}
+                  />
+                  <p className="text-xs text-gray-500">Supports Itch.io, Newgrounds, and HTML5 embed links.</p>
+                </div>
+              )}
             </div>
 
             {/* Metadata Form */}
