@@ -69,9 +69,9 @@ const Terms: React.FC = () => {
         </section>
 
         <section className="pt-8 border-t border-white/10">
-          <h2 className="text-2xl font-semibold text-white mb-3">Contact Us</h2>
+          <h2 className="text-2xl font-semibold text-white mb-3">Contact Us & DMCA</h2>
           <p>
-            For any legal inquiries, please contact us at:
+            For any legal inquiries, or to submit a DMCA takedown request regarding copyright infringement, please contact our designated agent at:
             <br />
             <span className="text-[#00ffd5]">eldoriatheshatteredveil@gmail.com</span>
           </p>

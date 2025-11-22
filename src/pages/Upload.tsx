@@ -27,6 +27,7 @@ const Upload: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -92,6 +93,11 @@ const Upload: React.FC = () => {
 
     if (!title.trim()) {
       setError('Project Title is required.');
+      return;
+    }
+
+    if (!agreedToTerms) {
+      setError('You must agree to the Upload Terms and certify your rights.');
       return;
     }
 
@@ -297,6 +303,29 @@ const Upload: React.FC = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   onFocus={playHover}
                 />
+              </div>
+
+              {/* Legal / Terms Checkbox */}
+              <div className="pt-4 border-t border-white/10">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative mt-1">
+                    <input 
+                      type="checkbox" 
+                      className="peer sr-only"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    />
+                    <div className="w-5 h-5 border-2 border-white/30 rounded bg-black/50 peer-checked:bg-[#00ffd5] peer-checked:border-[#00ffd5] transition-all"></div>
+                    <div className="absolute inset-0 flex items-center justify-center text-black opacity-0 peer-checked:opacity-100 pointer-events-none">
+                      <Zap size={12} fill="currentColor" />
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
+                    <span className="font-bold text-white">I certify that I have the rights to upload this content.</span>
+                    <br />
+                    I confirm this project does not infringe on any third-party copyrights or trademarks. If AI tools were used, I have disclosed this in the description/tags. I agree to the <a href="/terms" className="text-[#00ffd5] hover:underline" target="_blank">Terms of Service</a>.
+                  </div>
+                </label>
               </div>
             </div>
           </motion.div>

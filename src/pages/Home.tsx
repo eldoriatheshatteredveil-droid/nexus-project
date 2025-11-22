@@ -51,7 +51,7 @@ const Home: React.FC = () => {
                 <p className="text-gray-300 text-lg md:text-xl font-light tracking-wide leading-relaxed">
                   <span className="text-primary font-bold">JACK IN.</span> POWER UP. <span className="text-secondary font-bold">PLAY FOREVER.</span>
                   <br className="hidden md:block" />
-                  The premier destination for next-gen indie games and AI-powered tools.
+                  A new destination for next-gen indie games and AI-powered tools.
                   <br />
                   <span className="text-sm opacity-70 mt-2 block font-mono">REALITY IS A LIMITATION // THE DIGITAL FRONTIER IS INFINITE.</span>
                 </p>
