@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, AlignLeft, Save, Zap } from 'lucide-react';
+import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, AlignLeft, Save, Zap, Info } from 'lucide-react';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
@@ -160,6 +160,57 @@ const Upload: React.FC = () => {
             <div className="flex items-center gap-2 text-[#00ffd5] bg-[#00ffd5]/10 px-4 py-2 rounded-full border border-[#00ffd5]/30">
               <Zap size={16} className="animate-pulse" />
               <span className="font-mono text-xs font-bold">SYSTEM READY</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Upload Guidelines Panel */}
+        <div className="mb-8 bg-black/40 backdrop-blur-md border border-[#00ffd5]/30 rounded-2xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#00ffd5]" />
+          <div className="absolute -right-10 -top-10 w-32 h-32 bg-[#00ffd5]/10 rounded-full blur-3xl group-hover:bg-[#00ffd5]/20 transition-all" />
+          
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 font-orbitron">
+            <Info className="text-[#00ffd5]" size={24} />
+            UPLOAD GUIDELINES
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-300 font-mono">
+            <div className="space-y-3">
+              <h3 className="text-[#00ffd5] font-bold uppercase flex items-center gap-2">
+                <span className="bg-[#00ffd5] text-black w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span>
+                Game Format
+              </h3>
+              <ul className="space-y-2 list-none pl-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#00ffd5] mt-1">›</span>
+                  <span><strong className="text-white">HTML5 / WebGL:</strong> Upload a .ZIP file containing your game files. <span className="text-[#ff66cc]">index.html must be in the root folder</span> (not in a subfolder) for the game to load correctly.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#00ffd5] mt-1">›</span>
+                  <span><strong className="text-white">Downloadable:</strong> For Windows, Mac, or Linux builds. Upload .ZIP, .RAR, or .EXE files. Max file size: 1GB.</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="text-[#00ffd5] font-bold uppercase flex items-center gap-2">
+                <span className="bg-[#00ffd5] text-black w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span>
+                Assets & Policy
+              </h3>
+              <ul className="space-y-2 list-none pl-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#00ffd5] mt-1">›</span>
+                  <span><strong className="text-white">Cover Art:</strong> The first thing players see. Recommended size: <strong className="text-white">1600x900px</strong> (16:9 aspect ratio). JPG or PNG.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#00ffd5] mt-1">›</span>
+                  <span><strong className="text-white">Free Games Only:</strong> NEXUS is a free-to-play platform. Do not upload demos that require payment elsewhere.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#00ffd5] mt-1">›</span>
+                  <span><strong className="text-white">Copyright:</strong> Ensure you own all assets or have permission. No pirated content.</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
