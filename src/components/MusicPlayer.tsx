@@ -13,8 +13,31 @@ const MusicPlayer: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const currentTrack = MUSIC_TRACKS[currentTrackIndex];
+  const alternateIndexRef = React.useRef(0);
+
+  // Close player when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isExpanded &&
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsExpanded(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded]);
 
   // Sync local playing state with global store
   useEffect(() => {
@@ -40,6 +63,27 @@ const MusicPlayer: React.FC = () => {
     }
   }, [isPlaying, currentTrackIndex]);
 
+  // Reset alternate index whenever track changes
+  useEffect(() => {
+    alternateIndexRef.current = 0;
+    if (audioRef.current) {
+      audioRef.current.src = currentTrack.url;
+      // If we're supposed to be playing, attempt to start playback after switching src
+      if (isPlaying) {
+        try {
+          audioRef.current.load();
+          const p = audioRef.current.play();
+          if (p && p.catch) {
+            p.catch(e => console.warn('Play after track change failed:', e));
+          }
+          setIsLoading(true);
+        } catch (e) {
+          console.warn('Error while auto-playing after track change', e);
+        }
+      }
+    }
+  }, [currentTrackIndex]);
+
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
   };
@@ -51,10 +95,12 @@ const MusicPlayer: React.FC = () => {
 
   const nextTrack = () => {
     setCurrentTrackIndex((prev) => (prev + 1) % MUSIC_TRACKS.length);
+    setIsPlaying(true);
   };
 
   const prevTrack = () => {
     setCurrentTrackIndex((prev) => (prev - 1 + MUSIC_TRACKS.length) % MUSIC_TRACKS.length);
+    setIsPlaying(true);
   };
 
   const handleEnded = () => {
@@ -62,9 +108,31 @@ const MusicPlayer: React.FC = () => {
   };
 
   const handleError = () => {
-    console.warn(`Error playing track: ${currentTrack.title}.`);
+    console.warn(`Error playing track: ${currentTrack.title}. Trying alternates if available.`);
     setIsLoading(false);
+
+    const alternates = (currentTrack as any).alternates as string[] | undefined;
+    if (alternates && alternates.length > 0 && alternateIndexRef.current < alternates.length) {
+      const nextUrl = alternates[alternateIndexRef.current];
+      alternateIndexRef.current += 1;
+      if (audioRef.current) {
+        audioRef.current.src = nextUrl;
+        audioRef.current.load();
+        const p = audioRef.current.play();
+        if (p && p.catch) p.catch(e => {
+          console.warn('Alternate play failed:', e);
+          // try next alternate on failure
+          handleError();
+        });
+        setIsLoading(true);
+        setIsPlaying(true);
+        return;
+      }
+    }
+
+    // No alternates left — stop and move to next track
     setIsPlaying(false);
+    nextTrack();
   };
 
   const handleWaiting = () => {
@@ -91,6 +159,7 @@ const MusicPlayer: React.FC = () => {
 
       {/* Side Tab Button */}
       <motion.button
+        ref={buttonRef}
         className={`fixed left-0 top-32 z-40 bg-black/80 border-r border-t border-b border-[#00ffd5] py-6 pr-1 pl-2 rounded-r-xl text-[#00ffd5] hover:bg-[#00ffd5]/20 transition-colors backdrop-blur-md flex flex-col items-center gap-4 ${isExpanded ? 'shadow-[5px_0_15px_rgba(0,255,213,0.5)]' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         animate={{ x: isExpanded ? 320 : 0 }} // Move out when expanded
@@ -104,6 +173,7 @@ const MusicPlayer: React.FC = () => {
 
       {/* Expanded Player Panel */}
       <motion.div
+        ref={panelRef}
         className="fixed left-0 top-32 z-50 w-80 bg-black/90 border-r border-t border-b border-[#00ffd5]/50 rounded-r-2xl backdrop-blur-xl shadow-[5px_0_30px_rgba(0,255,213,0.3)] overflow-hidden"
         initial={{ x: '-100%' }}
         animate={{ x: isExpanded ? 0 : '-100%' }}
