@@ -113,7 +113,7 @@ const Profile: React.FC = () => {
         <div className="relative z-10 pt-32 px-8 pb-8 flex flex-col md:flex-row items-center md:items-end gap-8">
           {/* Avatar */}
           <div className="relative group/avatar">
-            <div className="w-32 h-32 rounded-2xl border-2 border-[#00ffd5] p-1 relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,255,213,0.2)] group-hover/avatar:shadow-[0_0_50px_rgba(0,255,213,0.4)] transition-shadow duration-500 flex items-center justify-center">
+            <div className="w-32 h-32 rounded-2xl border-2 border-[#00ffd5] p-1 relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,255,213,0.15)] group-hover/avatar:shadow-[0_0_50px_rgba(0,255,213,0.25)] transition-shadow duration-500 flex items-center justify-center">
               {(() => {
                 const selectedAvatar = AVATARS.find(a => a.id === selectedAvatarId);
                 // Use selected avatar level, or current user level if no avatar selected (or fallback to 1)
@@ -122,7 +122,7 @@ const Profile: React.FC = () => {
               })()}
               <div className="absolute inset-0 bg-gradient-to-t from-[#00ffd5]/20 to-transparent opacity-50 pointer-events-none" />
             </div>
-            <div className="absolute -bottom-3 -right-3 bg-black border border-[#00ffd5] text-[#00ffd5] text-xs font-bold px-3 py-1 rounded-lg font-orbitron shadow-[0_0_10px_rgba(0,255,213,0.3)] flex items-center gap-1">
+            <div className="absolute -bottom-3 -right-3 bg-black border border-[#00ffd5] text-[#00ffd5] text-xs font-bold px-3 py-1 rounded-lg font-orbitron shadow-[0_0_10px_rgba(0,255,213,0.2)] flex items-center gap-1">
               <Shield size={10} />
               LVL {currentLevel}
             </div>
@@ -138,7 +138,7 @@ const Profile: React.FC = () => {
                       type="text"
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
-                      className="bg-black/50 border border-[#00ffd5] text-white font-orbitron text-2xl px-3 py-1 rounded focus:outline-none focus:shadow-[0_0_15px_rgba(0,255,213,0.3)] w-64"
+                      className="bg-black/50 border border-[#00ffd5] text-white font-orbitron text-2xl px-3 py-1 rounded focus:outline-none focus:shadow-[0_0_15px_rgba(0,255,213,0.2)] w-64"
                       autoFocus
                     />
                     <button 
@@ -165,7 +165,7 @@ const Profile: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 group/edit">
-                  <h1 className="text-4xl font-bold text-white font-orbitron tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{user.username}</h1>
+                  <h1 className="text-4xl font-bold text-white font-orbitron tracking-wide drop-shadow-[0_0_10px_rgba(255,255,255,0.15)]">{user.username}</h1>
                   <button 
                     onClick={handleStartEdit}
                     className="opacity-0 group-hover/edit:opacity-100 transition-opacity text-gray-500 hover:text-[#00ffd5]"
@@ -176,10 +176,10 @@ const Profile: React.FC = () => {
               )}
 
               {user.is_dev && (
-                <span className="bg-[#ff66cc]/20 border border-[#ff66cc] text-[#ff66cc] text-[10px] px-2 py-0.5 rounded font-mono self-center shadow-[0_0_10px_rgba(255,102,204,0.3)]">DEV</span>
+                <span className="bg-[#ff66cc]/20 border border-[#ff66cc] text-[#ff66cc] text-[10px] px-2 py-0.5 rounded font-mono self-center shadow-[0_0_10px_rgba(255,102,204,0.2)]">DEV</span>
               )}
               {user.is_tester && (
-                <span className="bg-orange-500/20 border border-orange-500 text-orange-500 text-[10px] px-2 py-0.5 rounded font-mono self-center shadow-[0_0_10px_rgba(249,115,22,0.3)]">TESTER</span>
+                <span className="bg-orange-500/20 border border-orange-500 text-orange-500 text-[10px] px-2 py-0.5 rounded font-mono self-center shadow-[0_0_10px_rgba(249,115,22,0.2)]">TESTER</span>
               )}
             </div>
             <div className="flex items-center justify-center md:justify-start gap-4 text-sm font-mono text-gray-400">
@@ -427,7 +427,7 @@ const Profile: React.FC = () => {
                       disabled={!isUnlocked}
                       className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 group ${
                         isSelected 
-                          ? 'border-[#00ffd5] shadow-[0_0_15px_rgba(0,255,213,0.4)] scale-105 z-10' 
+                          ? 'border-[#00ffd5] shadow-[0_0_15px_rgba(0,255,213,0.25)] scale-105 z-10' 
                           : isUnlocked 
                             ? 'border-gray-800 hover:border-gray-500 hover:scale-105 hover:z-10' 
                             : 'border-gray-900 opacity-40 grayscale cursor-not-allowed'
@@ -486,7 +486,7 @@ const Profile: React.FC = () => {
                       disabled={!isUnlocked}
                       className={`relative p-4 rounded-xl border transition-all duration-300 flex items-center gap-4 text-left group ${
                         isSelected 
-                          ? 'border-[#ff66cc] bg-[#ff66cc]/5 shadow-[0_0_15px_rgba(255,102,204,0.2)]' 
+                          ? 'border-[#ff66cc] bg-[#ff66cc]/5 shadow-[0_0_15px_rgba(255,102,204,0.15)]' 
                           : isUnlocked 
                             ? 'border-gray-800 bg-black/20 hover:border-gray-600 hover:bg-black/40' 
                             : 'border-gray-900 bg-black/10 opacity-50 cursor-not-allowed'
@@ -558,7 +558,7 @@ const Profile: React.FC = () => {
               MARKET_ITEMS.filter(item => inventory.includes(item.id)).map(item => {
                 const equipped = isEquipped(item.id);
                 return (
-                  <div key={item.id} className={`bg-black/40 border p-6 rounded-xl backdrop-blur-sm transition-all ${equipped ? 'border-[#00ffd5] shadow-[0_0_15px_rgba(0,255,213,0.2)]' : 'border-gray-800 hover:border-gray-600'}`}>
+                  <div key={item.id} className={`bg-black/40 border p-6 rounded-xl backdrop-blur-sm transition-all ${equipped ? 'border-[#00ffd5] shadow-[0_0_15px_rgba(0,255,213,0.15)]' : 'border-gray-800 hover:border-gray-600'}`}>
                     <div className="flex justify-between items-start mb-4">
                       <div className={`p-3 rounded-lg ${
                         item.rarity === 'legendary' ? 'bg-yellow-500/10 text-yellow-500' :

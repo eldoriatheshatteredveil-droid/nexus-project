@@ -97,7 +97,7 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar relative">
+      <div className="flex-1 overflow-hidden relative flex flex-col">
         <AnimatePresence mode="wait">
           {activeTab === 'lobby' && (
             <motion.div
@@ -105,7 +105,7 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="space-y-2"
+              className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar"
             >
               {players.length === 0 ? (
                 <div className="text-center text-gray-500 mt-10 text-xs">NO OPERATIVES ONLINE</div>
@@ -144,9 +144,9 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="h-full flex flex-col"
+              className="flex-1 flex flex-col overflow-hidden"
             >
-              <div className="flex-1 space-y-3 mb-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`text-xs ${msg.system ? 'text-yellow-500 text-center italic' : ''}`}>
                     {!msg.system && (
@@ -167,7 +167,7 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
                 <div ref={chatEndRef} />
               </div>
               
-              <form onSubmit={handleSendChat} className="mt-auto flex gap-2">
+              <form onSubmit={handleSendChat} className="p-3 border-t border-[#00ffd5]/10 bg-black/20 flex gap-2">
                 <input
                   type="text"
                   value={chatInput}
@@ -191,7 +191,7 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
-              className="space-y-2"
+              className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar"
             >
                {leaderboard.length === 0 ? (
                  <div className="text-center text-gray-500 mt-10 text-xs">NO RANKED OPERATIVES</div>

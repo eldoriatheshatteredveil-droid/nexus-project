@@ -54,7 +54,7 @@ const SystemWidget: React.FC = () => {
           </div>
           <div className="h-1 bg-gray-800 rounded-full overflow-hidden box-glow">
             <div 
-              className="h-full bg-[rgb(var(--color-primary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-primary))]"
+              className="h-full bg-[rgb(var(--color-primary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-primary)/0.5)]"
               style={{ width: `${cpu}%` }}
             />
           </div>
@@ -67,7 +67,7 @@ const SystemWidget: React.FC = () => {
           </div>
           <div className="h-1 bg-gray-800 rounded-full overflow-hidden box-glow">
             <div 
-              className="h-full bg-[rgb(var(--color-secondary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-secondary))]"
+              className="h-full bg-[rgb(var(--color-secondary))] transition-all duration-500 shadow-[0_0_10px_rgb(var(--color-secondary)/0.5)]"
               style={{ width: `${mem}%` }}
             />
           </div>

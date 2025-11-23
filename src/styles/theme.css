@@ -6,11 +6,18 @@
     --color-text: 224 224 224;
     --color-accent: 255 204 0;
     
-    /* AAA Glow Effects - Default (Cyan) */
-    --glow-primary: 0 0 5px rgba(0, 255, 213, 0.4), 0 0 10px rgba(0, 255, 213, 0.2);
-    --glow-secondary: 0 0 5px rgba(255, 102, 204, 0.4), 0 0 10px rgba(255, 102, 204, 0.2);
-    --glow-box-primary: 0 0 8px rgba(0, 255, 213, 0.1), inset 0 0 5px rgba(0, 255, 213, 0.05);
-    --glow-text-strong: 0 0 3px rgba(0, 255, 213, 0.6), 0 0 8px rgba(0, 255, 213, 0.3);
+    /* AAA Glow Effects - Refined (Softer, Diffuse) */
+    --glow-primary: 0 0 15px rgba(0, 255, 213, 0.25), 0 0 30px rgba(0, 255, 213, 0.1);
+    --glow-secondary: 0 0 15px rgba(255, 102, 204, 0.25), 0 0 30px rgba(255, 102, 204, 0.1);
+    --glow-box-primary: 0 0 20px rgba(0, 255, 213, 0.08), inset 0 0 10px rgba(0, 255, 213, 0.03);
+    --glow-text-strong: 0 0 10px rgba(0, 255, 213, 0.5), 0 0 20px rgba(0, 255, 213, 0.2);
+
+    /* Faction Colors */
+    --color-syndicate: 255 0 255; /* Magenta/Purple */
+    --color-security: 0 255 213;  /* Cyan */
+    
+    --glow-syndicate: 0 0 20px rgba(255, 0, 255, 0.25), 0 0 40px rgba(255, 0, 255, 0.1);
+    --glow-security: 0 0 20px rgba(0, 255, 213, 0.25), 0 0 40px rgba(0, 255, 213, 0.1);
 }
 
 body {
@@ -20,6 +27,10 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    /* Subtle global gradient for depth */
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(var(--color-syndicate), 0.03), transparent 25%),
+        radial-gradient(circle at 85% 50%, rgba(var(--color-security), 0.03), transparent 25%);
 }
 
 /* Global Glow Utilities */

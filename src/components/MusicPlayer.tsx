@@ -160,7 +160,7 @@ const MusicPlayer: React.FC = () => {
       {/* Side Tab Button */}
       <motion.button
         ref={buttonRef}
-        className={`fixed left-0 top-32 z-40 bg-black/80 border-r border-t border-b border-[#00ffd5] py-6 pr-1 pl-2 rounded-r-xl text-[#00ffd5] hover:bg-[#00ffd5]/20 transition-colors backdrop-blur-md flex flex-col items-center gap-4 ${isExpanded ? 'shadow-[5px_0_15px_rgba(0,255,213,0.5)]' : ''}`}
+        className={`fixed left-0 top-32 z-40 bg-black/80 border-r border-t border-b border-[#00ffd5] py-6 pr-1 pl-2 rounded-r-xl text-[#00ffd5] hover:bg-[#00ffd5]/20 transition-colors backdrop-blur-md flex flex-col items-center gap-4 ${isExpanded ? 'shadow-[5px_0_15px_rgba(0,255,213,0.2)]' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         animate={{ x: isExpanded ? 320 : 0 }} // Move out when expanded
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -174,7 +174,7 @@ const MusicPlayer: React.FC = () => {
       {/* Expanded Player Panel */}
       <motion.div
         ref={panelRef}
-        className="fixed left-0 top-32 z-50 w-80 bg-black/90 border-r border-t border-b border-[#00ffd5]/50 rounded-r-2xl backdrop-blur-xl shadow-[5px_0_30px_rgba(0,255,213,0.3)] overflow-hidden"
+        className="fixed left-0 top-32 z-50 w-80 bg-black/90 border-r border-t border-b border-[#00ffd5]/50 rounded-r-2xl backdrop-blur-xl shadow-[5px_0_30px_rgba(0,255,213,0.15)] overflow-hidden"
         initial={{ x: '-100%' }}
         animate={{ x: isExpanded ? 0 : '-100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -197,7 +197,7 @@ const MusicPlayer: React.FC = () => {
         <div className="p-6 flex flex-col items-center text-center space-y-4 relative overflow-hidden">
           {/* Background Visualizer Effect */}
           <div className="absolute inset-0 opacity-10 pointer-events-none">
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#00ffd5] rounded-full blur-[50px] animate-pulse" />
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-[#00ffd5]/50 rounded-full blur-[60px] animate-pulse" />
           </div>
 
           <div className="relative w-32 h-32 rounded-full border-4 border-[#00ffd5]/30 flex items-center justify-center bg-black/50 shadow-neon group">

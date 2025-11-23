@@ -4,6 +4,7 @@ import { Search, Filter, Tag, Star, Zap, Code, Cpu, Gamepad2, LayoutGrid, User, 
 import { useStore } from '../store';
 import GameCardHolographic from './GameCardHolographic';
 import GameDetailModal from './GameDetailModal';
+import FactionDivider from './FactionDivider';
 
 const Storefront: React.FC = () => {
   const games = useStore((state) => state.games);
@@ -71,7 +72,7 @@ const Storefront: React.FC = () => {
 
                 {/* Main Title */}
                 <h1 className="text-6xl md:text-9xl font-black font-orbitron tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#ff00ff] via-white to-[#00ffd5] animate-pulse-slow relative z-10"
-                    style={{ filter: 'drop-shadow(-4px 0px 0px rgba(255,0,255,0.5)) drop-shadow(4px 0px 0px rgba(0,255,213,0.5)) drop-shadow(0 0 30px rgba(255,255,255,0.3))' }}>
+                    style={{ filter: 'drop-shadow(-4px 0px 0px rgba(255,0,255,0.3)) drop-shadow(4px 0px 0px rgba(0,255,213,0.3)) drop-shadow(0 0 30px rgba(255,255,255,0.15))' }}>
                   FACTION WARS
                 </h1>
               </div>
@@ -85,17 +86,17 @@ const Storefront: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
               
               {/* Syndicate Card */}
-              <button className="group relative h-[500px] border border-purple-500/30 bg-purple-900/10 rounded-2xl overflow-hidden hover:bg-purple-900/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(168,85,247,0.3)] text-left">
+              <button className="group relative h-[500px] border border-purple-500/30 bg-purple-900/10 rounded-2xl overflow-hidden hover:bg-purple-900/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(168,85,247,0.2)] text-left">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.2),transparent_50%)] z-10" />
                 
                 <div className="relative z-20 h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
-                  <div className="w-32 h-32 rounded-full bg-purple-500/10 border border-purple-500/50 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/20 transition-all duration-500 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
-                    <Skull size={64} className="text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]" strokeWidth={1.5} />
+                  <div className="w-32 h-32 rounded-full bg-purple-500/10 border border-purple-500/50 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/20 transition-all duration-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+                    <Skull size={64} className="text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" strokeWidth={1.5} />
                   </div>
                   
                   <div className="space-y-2">
-                    <h3 className="text-4xl font-bold text-purple-400 font-orbitron tracking-wider drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                    <h3 className="text-4xl font-bold text-purple-400 font-orbitron tracking-wider drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">
                       THE SYNDICATE
                     </h3>
                     <p className="text-purple-300/80 text-sm font-mono tracking-widest uppercase">Cybernetic Elite</p>
@@ -109,7 +110,7 @@ const Storefront: React.FC = () => {
                   </div>
 
                   <div className="pt-4">
-                    <div className="px-8 py-3 border border-purple-500 text-purple-400 rounded font-bold tracking-widest group-hover:bg-purple-500 group-hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                    <div className="px-8 py-3 border border-purple-500 text-purple-400 rounded font-bold tracking-widest group-hover:bg-purple-500 group-hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
                       JOIN THE REBELLION
                     </div>
                   </div>
@@ -117,17 +118,17 @@ const Storefront: React.FC = () => {
               </button>
 
               {/* Security Card */}
-              <button className="group relative h-[500px] border border-blue-500/30 bg-blue-900/10 rounded-2xl overflow-hidden hover:bg-blue-900/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(59,130,246,0.3)] text-left">
+              <button className="group relative h-[500px] border border-blue-500/30 bg-blue-900/10 rounded-2xl overflow-hidden hover:bg-blue-900/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(59,130,246,0.2)] text-left">
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_50%)] z-10" />
                 
                 <div className="relative z-20 h-full flex flex-col items-center justify-center p-8 text-center space-y-6">
-                  <div className="w-32 h-32 rounded-full bg-blue-500/10 border border-blue-500/50 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/20 transition-all duration-500 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-                    <Shield size={64} className="text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" strokeWidth={1.5} />
+                  <div className="w-32 h-32 rounded-full bg-blue-500/10 border border-blue-500/50 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/20 transition-all duration-500 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
+                    <Shield size={64} className="text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" strokeWidth={1.5} />
                   </div>
                   
                   <div className="space-y-2">
-                    <h3 className="text-4xl font-bold text-blue-400 font-orbitron tracking-wider drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                    <h3 className="text-4xl font-bold text-blue-400 font-orbitron tracking-wider drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]">
                       SYSTEM SECURITY
                     </h3>
                     <p className="text-blue-300/80 text-sm font-mono tracking-widest uppercase">Corporate Enforcers</p>
@@ -141,7 +142,7 @@ const Storefront: React.FC = () => {
                   </div>
 
                   <div className="pt-4">
-                    <div className="px-8 py-3 border border-blue-500 text-blue-400 rounded font-bold tracking-widest group-hover:bg-blue-500 group-hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                    <div className="px-8 py-3 border border-blue-500 text-blue-400 rounded font-bold tracking-widest group-hover:bg-blue-500 group-hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
                       ENLIST NOW
                     </div>
                   </div>
@@ -151,6 +152,8 @@ const Storefront: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        <FactionDivider />
 
         {/* Controls Bar */}
         <div className="flex flex-col md:flex-row gap-6 items-center justify-between sticky top-4 z-30 bg-black/50 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl">

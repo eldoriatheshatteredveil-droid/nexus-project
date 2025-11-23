@@ -120,7 +120,7 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
                     <div className="absolute inset-0 flex items-center justify-center">
                       <button
                         onClick={handlePlayClick}
-                        className="group relative px-8 py-4 bg-primary text-black font-bold text-xl rounded-full overflow-hidden hover:scale-105 transition-transform shadow-[0_0_20px_rgb(var(--color-primary)/0.5)]"
+                        className="group relative px-8 py-4 bg-primary text-black font-bold text-xl rounded-full overflow-hidden hover:scale-105 transition-transform shadow-[0_0_20px_rgb(var(--color-primary)/0.3)]"
                       >
                         <span className="relative z-10 flex items-center gap-2">
                           <Play fill="currentColor" /> PLAY NOW

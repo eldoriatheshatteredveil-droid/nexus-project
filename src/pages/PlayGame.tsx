@@ -117,7 +117,7 @@ const PlayGame: React.FC = () => {
 
         {/* Center Title */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center hidden sm:block">
-          <h1 className="text-2xl md:text-3xl font-orbitron font-bold text-white tracking-[0.2em] drop-shadow-[0_0_10px_rgba(0,255,213,0.5)]">
+          <h1 className="text-2xl md:text-3xl font-orbitron font-bold text-white tracking-[0.2em] drop-shadow-[0_0_10px_rgba(0,255,213,0.25)]">
             {game.title.toUpperCase()}
           </h1>
           <div className="flex items-center justify-center gap-2 mt-1">
@@ -161,7 +161,7 @@ const PlayGame: React.FC = () => {
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="relative w-full max-w-6xl bg-black/60 border border-[#00ffd5]/30 rounded-xl shadow-[0_0_50px_rgba(0,255,213,0.05)] backdrop-blur-sm overflow-hidden"
+            className="relative w-full max-w-6xl bg-black/60 border border-[#00ffd5]/30 rounded-xl shadow-[0_0_50px_rgba(0,255,213,0.03)] backdrop-blur-sm overflow-hidden"
           >
             {/* Decorative Corner Accents */}
             <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#00ffd5] rounded-tl-xl opacity-50" />
@@ -170,7 +170,7 @@ const PlayGame: React.FC = () => {
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#00ffd5] rounded-br-xl opacity-50" />
 
             {/* Inner Frame Glow */}
-            <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,255,213,0.05)] pointer-events-none" />
+            <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,255,213,0.03)] pointer-events-none" />
 
             {/* Game Content Wrapper */}
             <div className="p-8 md:p-12 flex justify-center min-h-[600px] items-center relative z-10 w-full h-full">

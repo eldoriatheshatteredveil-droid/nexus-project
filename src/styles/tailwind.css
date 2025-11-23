@@ -40,8 +40,4 @@
   .bg-cyberpunk {
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
   }
-
-  .text-glow {
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.7), 0 0 10px rgba(0, 255, 0, 0.5);
-  }
 }

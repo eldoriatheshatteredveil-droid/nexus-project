@@ -99,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenTerminal, onOpenBlackMarket }) =>
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 p-4 flex justify-between items-center h-24 shadow-[0_5px_20px_rgba(0,0,0,0.5)]">
+            <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5 p-4 flex justify-between items-center h-24 shadow-lg">
                 <div className="cursor-pointer" onMouseEnter={playHover} onClick={playClick}>
                     <Link to="/">
                         <NexusLogo />

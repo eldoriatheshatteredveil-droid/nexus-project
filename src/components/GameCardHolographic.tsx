@@ -27,7 +27,7 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
     const rx = (y - 0.5) * 10;
     const ry = (x - 0.5) * -10;
     el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(8px)`;
-    el.style.boxShadow = `0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgb(var(--color-primary) / 0.4), 0 0 40px rgb(var(--color-primary) / 0.2)`;
+    el.style.boxShadow = `0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgb(var(--color-primary) / 0.2), 0 0 40px rgb(var(--color-primary) / 0.1)`;
   };
 
   const handleLeave = () => {
@@ -78,8 +78,8 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
             <span className={`
               text-[10px] font-bold px-2 py-1 rounded-sm border backdrop-blur-md uppercase tracking-wider shadow-lg
               ${game.mode === 'multiplayer' 
-                ? 'bg-fuchsia-500/30 border-fuchsia-400 text-fuchsia-100 shadow-[0_0_15px_rgba(217,70,239,0.5)]' 
-                : 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.5)]'}
+                ? 'bg-fuchsia-500/20 border-fuchsia-400/50 text-fuchsia-100 shadow-[0_0_15px_rgba(217,70,239,0.2)]' 
+                : 'bg-cyan-500/20 border-cyan-400/50 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.2)]'}
             `}>
               {game.mode === 'multiplayer' ? 'Multiplayer' : 'Single Player'}
             </span>
