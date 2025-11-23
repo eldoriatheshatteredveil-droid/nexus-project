@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
+import { useMultiplayer } from '../hooks/useMultiplayer';
+import { useAuth } from '../hooks/useAuth';
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 500;
@@ -18,7 +20,17 @@ interface NexusPongProps {
 const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentName = 'CPU' }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { playClick, playSwitch } = useCyberSound();
+  const { user } = useAuth();
   
+  // Multiplayer Hooks
+  const { activeMatch, gameState: mpGameState, updateGameState } = useMultiplayer('nexus-pong');
+  const isMultiplayer = !!activeMatch;
+  
+  // Determine Player Role
+  const playerIndex = isMultiplayer && mpGameState?.players ? 
+    (Object.keys(mpGameState.players)[0] === user?.id ? 0 : 1) : 0;
+  const isHost = playerIndex === 0; // Host calculates physics
+
   // Game State
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState({ player: 0, ai: 0 });
@@ -26,7 +38,7 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
   const [winner, setWinner] = useState<'PLAYER' | 'AI' | null>(null);
   const { updateHighScore } = useStore();
 
-  // Mutable game state for the loop (to avoid closure staleness)
+  // Mutable game state for the loop
   const gameState = useRef({
     playerY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
     aiY: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
@@ -41,6 +53,43 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
       down: false
     }
   });
+
+  // Sync Multiplayer State
+  useEffect(() => {
+    if (!isMultiplayer || !mpGameState) return;
+
+    // Sync Opponent Paddle
+    if (mpGameState.players) {
+      const opponentId = Object.keys(mpGameState.players).find(id => id !== user?.id);
+      if (opponentId && mpGameState.players[opponentId]) {
+        const opponentY = mpGameState.players[opponentId].y;
+        if (typeof opponentY === 'number') {
+           // If I am P1, opponent is AI (Right) paddle. If I am P2, opponent is Player (Left) paddle.
+           if (isHost) {
+             gameState.current.aiY = opponentY;
+           } else {
+             gameState.current.playerY = opponentY;
+           }
+        }
+      }
+    }
+
+    // Sync Ball (If not host)
+    if (!isHost && mpGameState.ball) {
+      gameState.current.ball = mpGameState.ball;
+    }
+
+    // Sync Score
+    if (mpGameState.score) {
+      setScore({ player: mpGameState.score.p1, ai: mpGameState.score.p2 });
+    }
+
+    // Start game if multiplayer match is active
+    if (!isPlaying && !gameOver) {
+      setIsPlaying(true);
+    }
+
+  }, [mpGameState, isMultiplayer, isHost, user, isPlaying, gameOver]);
 
   const resetGame = () => {
     gameState.current = {
@@ -59,6 +108,13 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
     setWinner(null);
     setIsPlaying(true);
     playClick();
+
+    if (isMultiplayer) {
+      updateGameState({
+        score: { p1: 0, p2: 0 },
+        ball: gameState.current.ball
+      });
+    }
   };
 
   const resetBall = (winner: 'PLAYER' | 'AI') => {
@@ -102,6 +158,7 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
     if (!ctx) return;
 
     let animationFrameId: number;
+    let lastSync = 0;
 
     const render = () => {
       // Clear canvas
@@ -137,11 +194,11 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
       ctx.fillStyle = '#00ffd5';
       ctx.shadowBlur = 10;
       ctx.shadowColor = '#00ffd5';
-      ctx.fillRect(20, gameState.current.playerY, PADDLE_WIDTH, PADDLE_HEIGHT); // Player
+      ctx.fillRect(20, gameState.current.playerY, PADDLE_WIDTH, PADDLE_HEIGHT); // Player (Left)
       
-      ctx.fillStyle = '#ff0055';
-      ctx.shadowColor = '#ff0055';
-      ctx.fillRect(CANVAS_WIDTH - 30, gameState.current.aiY, PADDLE_WIDTH, PADDLE_HEIGHT); // AI
+      ctx.fillStyle = isMultiplayer ? '#ff66cc' : '#ff0055'; // Different color for MP opponent
+      ctx.shadowColor = isMultiplayer ? '#ff66cc' : '#ff0055';
+      ctx.fillRect(CANVAS_WIDTH - 30, gameState.current.aiY, PADDLE_WIDTH, PADDLE_HEIGHT); // AI/Opponent (Right)
 
       // Draw Ball
       ctx.fillStyle = '#ffffff';
@@ -159,79 +216,117 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
 
       const state = gameState.current;
 
-      // Player Movement
-      if (state.keys.up && state.playerY > 0) state.playerY -= PADDLE_SPEED;
-      if (state.keys.down && state.playerY < CANVAS_HEIGHT - PADDLE_HEIGHT) state.playerY += PADDLE_SPEED;
+      // Local Player Movement Logic
+      // If Host (P1), I control Left Paddle (playerY).
+      // If Guest (P2), I control Right Paddle (aiY).
+      
+      if (isMultiplayer) {
+        if (isHost) {
+          // Host controls Left Paddle
+          if (state.keys.up && state.playerY > 0) state.playerY -= PADDLE_SPEED;
+          if (state.keys.down && state.playerY < CANVAS_HEIGHT - PADDLE_HEIGHT) state.playerY += PADDLE_SPEED;
+        } else {
+          // Guest controls Right Paddle (mapped to aiY variable for rendering simplicity)
+          if (state.keys.up && state.aiY > 0) state.aiY -= PADDLE_SPEED;
+          if (state.keys.down && state.aiY < CANVAS_HEIGHT - PADDLE_HEIGHT) state.aiY += PADDLE_SPEED;
+        }
+      } else {
+        // Single Player Logic
+        if (state.keys.up && state.playerY > 0) state.playerY -= PADDLE_SPEED;
+        if (state.keys.down && state.playerY < CANVAS_HEIGHT - PADDLE_HEIGHT) state.playerY += PADDLE_SPEED;
 
-      // AI Movement (Simple tracking with some delay/imperfection could be added, but let's keep it simple first)
-      const aiCenter = state.aiY + PADDLE_HEIGHT / 2;
-      if (aiCenter < state.ball.y - 10) state.aiY += PADDLE_SPEED * 0.85; // AI is slightly slower
-      else if (aiCenter > state.ball.y + 10) state.aiY -= PADDLE_SPEED * 0.85;
-
-      // Clamp AI position
-      if (state.aiY < 0) state.aiY = 0;
-      if (state.aiY > CANVAS_HEIGHT - PADDLE_HEIGHT) state.aiY = CANVAS_HEIGHT - PADDLE_HEIGHT;
-
-      // Ball Movement
-      state.ball.x += state.ball.dx;
-      state.ball.y += state.ball.dy;
-
-      // Wall Collisions (Top/Bottom)
-      if (state.ball.y <= 0 || state.ball.y >= CANVAS_HEIGHT) {
-        state.ball.dy *= -1;
-        playSwitch(); // Sound effect on bounce
+        // AI Logic
+        const aiCenter = state.aiY + PADDLE_HEIGHT / 2;
+        if (aiCenter < state.ball.y - 10) state.aiY += PADDLE_SPEED * 0.85;
+        else if (aiCenter > state.ball.y + 10) state.aiY -= PADDLE_SPEED * 0.85;
+        
+        // Clamp AI
+        if (state.aiY < 0) state.aiY = 0;
+        if (state.aiY > CANVAS_HEIGHT - PADDLE_HEIGHT) state.aiY = CANVAS_HEIGHT - PADDLE_HEIGHT;
       }
 
-      // Paddle Collisions
-      // Player Paddle
-      if (
-        state.ball.x <= 30 + PADDLE_WIDTH &&
-        state.ball.x >= 20 &&
-        state.ball.y >= state.playerY &&
-        state.ball.y <= state.playerY + PADDLE_HEIGHT
-      ) {
-        state.ball.dx *= -1.1; // Speed up slightly
-        state.ball.x = 30 + PADDLE_WIDTH; // Prevent sticking
-        playSwitch();
+      // Physics (Host Only or Single Player)
+      if (!isMultiplayer || isHost) {
+        // Ball Movement
+        state.ball.x += state.ball.dx;
+        state.ball.y += state.ball.dy;
+
+        // Wall Collisions
+        if (state.ball.y <= 0 || state.ball.y >= CANVAS_HEIGHT) {
+          state.ball.dy *= -1;
+          playSwitch();
+        }
+
+        // Paddle Collisions
+        // Left Paddle
+        if (
+          state.ball.x <= 30 + PADDLE_WIDTH &&
+          state.ball.x >= 20 &&
+          state.ball.y >= state.playerY &&
+          state.ball.y <= state.playerY + PADDLE_HEIGHT
+        ) {
+          state.ball.dx *= -1.1;
+          state.ball.x = 30 + PADDLE_WIDTH;
+          playSwitch();
+        }
+
+        // Right Paddle
+        if (
+          state.ball.x >= CANVAS_WIDTH - 30 - PADDLE_WIDTH &&
+          state.ball.x <= CANVAS_WIDTH - 20 &&
+          state.ball.y >= state.aiY &&
+          state.ball.y <= state.aiY + PADDLE_HEIGHT
+        ) {
+          state.ball.dx *= -1.1;
+          state.ball.x = CANVAS_WIDTH - 30 - PADDLE_WIDTH;
+          playSwitch();
+        }
+
+        // Scoring
+        if (state.ball.x < 0) {
+          // Right Side Scored
+          setScore(prev => {
+            const newScore = { ...prev, ai: prev.ai + 1 };
+            if (newScore.ai >= 5) {
+              setGameOver(true);
+              setWinner(isMultiplayer ? 'AI' : 'AI'); // In MP, 'AI' means P2
+              setIsPlaying(false);
+            }
+            return newScore;
+          });
+          resetBall('AI');
+        } else if (state.ball.x > CANVAS_WIDTH) {
+          // Left Side Scored
+          setScore(prev => {
+            const newScore = { ...prev, player: prev.player + 1 };
+            if (newScore.player >= 5) {
+              setGameOver(true);
+              setWinner('PLAYER');
+              setIsPlaying(false);
+            }
+            return newScore;
+          });
+          resetBall('PLAYER');
+        }
       }
 
-      // AI Paddle
-      if (
-        state.ball.x >= CANVAS_WIDTH - 30 - PADDLE_WIDTH &&
-        state.ball.x <= CANVAS_WIDTH - 20 &&
-        state.ball.y >= state.aiY &&
-        state.ball.y <= state.aiY + PADDLE_HEIGHT
-      ) {
-        state.ball.dx *= -1.1;
-        state.ball.x = CANVAS_WIDTH - 30 - PADDLE_WIDTH;
-        playSwitch();
-      }
-
-      // Scoring
-      if (state.ball.x < 0) {
-        // AI Scored
-        setScore(prev => {
-          const newScore = { ...prev, ai: prev.ai + 1 };
-          if (newScore.ai >= 5) {
-            setGameOver(true);
-            setWinner('AI');
-            setIsPlaying(false);
+      // Sync to Multiplayer State (Throttled to ~30fps)
+      if (isMultiplayer && Date.now() - lastSync > 33) {
+        lastSync = Date.now();
+        const myY = isHost ? state.playerY : state.aiY;
+        
+        const update: any = {
+          players: {
+            [user?.id || '']: { y: myY }
           }
-          return newScore;
-        });
-        resetBall('AI');
-      } else if (state.ball.x > CANVAS_WIDTH) {
-        // Player Scored
-        setScore(prev => {
-          const newScore = { ...prev, player: prev.player + 1 };
-          if (newScore.player >= 5) {
-            setGameOver(true);
-            setWinner('PLAYER');
-            setIsPlaying(false);
-          }
-          return newScore;
-        });
-        resetBall('PLAYER');
+        };
+
+        if (isHost) {
+          update.ball = state.ball;
+          update.score = { p1: score.player, p2: score.ai };
+        }
+
+        updateGameState(update);
       }
     };
 
@@ -244,13 +339,15 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
     loop();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isPlaying, gameOver, playSwitch]);
+  }, [isPlaying, gameOver, playSwitch, isMultiplayer, isHost, user, updateGameState, score]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-black/50 rounded-xl border border-[#00ffd5]/30 backdrop-blur-sm">
       <div className="mb-4 flex justify-between w-full max-w-[800px] text-[#00ffd5] font-mono text-xl">
-        <span className="text-[#00ffd5]">{playerName}: {score.player}</span>
-        <span className="text-[#ff0055]">{opponentName}: {score.ai}</span>
+        <span className="text-[#00ffd5]">{isMultiplayer && !isHost ? 'OPPONENT' : playerName}: {score.player}</span>
+        <span className={isMultiplayer ? "text-[#ff66cc]" : "text-[#ff0055]"}>
+          {isMultiplayer ? (isHost ? 'OPPONENT' : playerName) : opponentName}: {score.ai}
+        </span>
       </div>
 
       <div className="relative">
@@ -275,7 +372,9 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
                 </p>
               </>
             ) : (
-              <h2 className="text-4xl font-bold text-[#00ffd5] mb-8 tracking-widest">NEXUS PONG</h2>
+              <h2 className="text-4xl font-bold text-[#00ffd5] mb-8 tracking-widest">
+                {isMultiplayer ? 'MULTIPLAYER LINK ESTABLISHED' : 'NEXUS PONG'}
+              </h2>
             )}
             
             <button
