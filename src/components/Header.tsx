@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
-import { Crosshair, Gamepad2, Upload, Info, Mail, User, LogIn, Shield, MessageSquare, ShoppingBag, Terminal } from 'lucide-react';
+import { Crosshair, Gamepad2, Upload, Info, Mail, User, LogIn, Shield, MessageSquare, ShoppingBag, Terminal, Network } from 'lucide-react';
 import NexusLogo from './NexusLogo';
 import AuthModal from './AuthModal';
 import Chat from './Chat';
@@ -62,7 +62,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onOpenTerminal, onOpenBlackMarket }) => {
     const { playHover, playClick } = useCyberSound();
-    const { killCount, selectedAvatarId, xp, messages, credits } = useStore();
+    const { killCount, selectedAvatarId, xp, messages, credits, faction } = useStore();
     const { user } = useAuth();
     const [fireworksId, setFireworksId] = useState<number | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -163,6 +163,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenTerminal, onOpenBlackMarket }) =>
 
                 <nav className="flex items-center gap-4">
                     <CyberNavLink to="/" icon={<Gamepad2 size={16} />}>Games</CyberNavLink>
+                    {user && faction && <CyberNavLink to="/nexus" icon={<Network size={16} />}>NEXUS</CyberNavLink>}
                     {user && <CyberNavLink to="/upload" icon={<Upload size={16} />}>Upload</CyberNavLink>}
                     <CyberNavLink to="/about" icon={<Info size={16} />}>About</CyberNavLink>
                     <CyberNavLink to="/contact" icon={<Mail size={16} />}>Contact</CyberNavLink>

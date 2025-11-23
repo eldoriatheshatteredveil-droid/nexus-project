@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
+import { storage } from '../lib/storage';
 import { Shield, Crosshair, Trophy, Cpu, LogOut, Clock, User, Activity, Settings, Grid, Zap, Lock, Unlock, Edit2, Check, X, AlertTriangle, Award, Star, Hexagon, Flag, Briefcase, Users } from 'lucide-react';
 import { ORBS } from '../data/orbs';
 import { AVATARS, getLevelFromXP, getXPForLevel } from '../data/avatars';
@@ -697,18 +698,8 @@ const Profile: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                 {(() => {
-                  // Fetch all users from local storage
-                  const registeredUsers = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-                  const devSession = localStorage.getItem('nexus_dev_session');
-                  
-                  let allUsers = [...registeredUsers];
-                  if (devSession) {
-                    const devUser = JSON.parse(devSession);
-                    // Avoid duplicates if dev is also in registered list (unlikely but possible)
-                    if (!allUsers.find((u: any) => u.id === devUser.id)) {
-                      allUsers.push(devUser);
-                    }
-                  }
+                  // Fetch all users from storage service
+                  const allUsers = storage.getAllUsers();
 
                   // Filter for "online" users (active in last 5 minutes)
                   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);

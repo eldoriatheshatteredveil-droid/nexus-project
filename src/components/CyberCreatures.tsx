@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bug, Bot, Skull, Ghost } from 'lucide-react';
+import { Bug, Shield, Ghost } from 'lucide-react';
 import { useStore } from '../store';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { ORBS } from '../data/orbs';
 
 type CreatureType = 'bug' | 'drone' | 'virus' | 'glitch' | 'rare_bug';
 
@@ -15,6 +16,9 @@ interface Creature {
   rotation: number;
   scale: number;
   isDead: boolean;
+  hp: number;
+  maxHp: number;
+  isFleeing: boolean;
 }
 
 const SPAWN_RATE = 2000; // Spawn every 2 seconds
@@ -22,10 +26,32 @@ const MAX_CREATURES = 15;
 
 const CyberCreatures: React.FC = () => {
   const [creatures, setCreatures] = useState<Creature[]>([]);
-  const incrementKillCount = useStore((state) => state.incrementKillCount);
-  const { playGunshot, playGlitch } = useCyberSound();
+  const { incrementKillCount, selectedOrbId, lastShotTimestamp, setLastShotTimestamp } = useStore();
+  const { playGunshot, playGlitch, playClick } = useCyberSound(); // Added playClick for empty clicks/misses
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
+  const mousePosRef = useRef({ x: 0, y: 0 });
+
+  // Get current orb stats
+  const currentOrb = ORBS.find(o => o.id === selectedOrbId) || ORBS[0];
+  
+  // Calculate derived stats
+  // Speed 0-100 -> Cooldown 1000ms - 100ms
+  const cooldown = Math.max(100, 1000 - (currentOrb.stats.speed * 9)); 
+  
+  // Stealth 0-100 -> Detection Radius 400px - 50px
+  const detectionRadius = Math.max(50, 400 - (currentOrb.stats.stealth * 3.5));
+
+  // Precision 0-100 -> Miss Chance 30% - 0%
+  const missChance = Math.max(0, (100 - currentOrb.stats.precision) * 0.003);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   const spawnCreature = useCallback(() => {
     setCreatures((prev) => {
@@ -34,9 +60,20 @@ const CyberCreatures: React.FC = () => {
       // Spawn logic: mostly bugs, sometimes rare bugs
       const rand = Math.random();
       let type: CreatureType = 'bug';
+      let hp = 1;
       
       if (rand < 0.15) { // 15% chance for rare bug
         type = 'rare_bug';
+        hp = 3;
+      } else if (rand < 0.25) {
+        type = 'drone';
+        hp = 2;
+      } else if (rand < 0.30) {
+        type = 'virus';
+        hp = 4;
+      } else if (rand < 0.35) {
+        type = 'glitch';
+        hp = 2;
       }
       
       // Spawn at random edge relative to current scroll position
@@ -60,7 +97,7 @@ const CyberCreatures: React.FC = () => {
       const targetY = scrollY + Math.random() * vh;
       const angle = Math.atan2(targetY - y, targetX - x);
       
-      // Bug speed
+      // Base speed
       const speed = 2 + Math.random();
 
       return [...prev, {
@@ -72,7 +109,10 @@ const CyberCreatures: React.FC = () => {
         vy: Math.sin(angle) * speed,
         rotation: (angle * 180) / Math.PI + 90,
         scale: 1,
-        isDead: false
+        isDead: false,
+        hp,
+        maxHp: hp,
+        isFleeing: false
       }];
     });
   }, []);
@@ -94,8 +134,46 @@ const CyberCreatures: React.FC = () => {
             let newVx = c.vx;
             let newVy = c.vy;
             let newRotation = c.rotation;
+            let isFleeing = false;
+
+            // Flee Behavior based on Stealth Stat
+            const dx = c.x - (mousePosRef.current.x + window.scrollX);
+            const dy = c.y - (mousePosRef.current.y + window.scrollY);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < detectionRadius) {
+              isFleeing = true;
+              // Flee away from cursor
+              const fleeAngle = Math.atan2(dy, dx);
+              // Accelerate away
+              newVx += Math.cos(fleeAngle) * 0.2;
+              newVy += Math.sin(fleeAngle) * 0.2;
+              
+              // Cap max speed
+              const currentSpeed = Math.sqrt(newVx * newVx + newVy * newVy);
+              const maxSpeed = 8;
+              if (currentSpeed > maxSpeed) {
+                newVx = (newVx / currentSpeed) * maxSpeed;
+                newVy = (newVy / currentSpeed) * maxSpeed;
+              }
+
+              // Update rotation to face away
+              newRotation = (fleeAngle * 180) / Math.PI + 90;
+            } else {
+              // Friction to return to normal speed
+              newVx *= 0.98;
+              newVy *= 0.98;
+              
+              // Minimum speed check
+              const currentSpeed = Math.sqrt(newVx * newVx + newVy * newVy);
+              if (currentSpeed < 1) {
+                 newVx *= 1.05;
+                 newVy *= 1.05;
+              }
+            }
 
             // Collision Avoidance with Interactive Elements & Content
+            // ...existing code...
             // We use elementsFromPoint to ignore the creature itself
             // Convert document coordinates to viewport coordinates for elementFromPoint
             const viewportX = newX - window.scrollX;
@@ -192,7 +270,7 @@ const CyberCreatures: React.FC = () => {
               return null;
             }
 
-            return { ...c, x: newX, y: newY, vx: newVx, vy: newVy, rotation: newRotation };
+            return { ...c, x: newX, y: newY, vx: newVx, vy: newVy, rotation: newRotation, isFleeing };
           })
           .filter((c): c is Creature => c !== null)
       );
@@ -209,27 +287,57 @@ const CyberCreatures: React.FC = () => {
   }, []);
 
   const handleKill = (e: React.MouseEvent, id: number) => {
-    e.stopPropagation(); // Prevent triggering global click handlers (like the bullet hole on the background if possible, though layout captures it)
+    e.stopPropagation(); // Prevent triggering global click handlers
     
+    const now = Date.now();
+    if (now - lastShotTimestamp < cooldown) {
+      // Cooldown active - click ignored or play "jammed" sound
+      return;
+    }
+    setLastShotTimestamp(now);
+
     const creature = creatures.find(c => c.id === id);
     if (!creature || creature.isDead) return;
+
+    // Miss Calculation
+    if (Math.random() < missChance) {
+      // Missed!
+      playClick(); // Dry fire sound
+      // Maybe show a "MISS" text?
+      return;
+    }
 
     playGunshot();
     if (creature.type === 'glitch') playGlitch();
 
-    const killValue = creature.type === 'rare_bug' ? 5 : 1;
-    incrementKillCount(killValue);
+    // Damage Calculation
+    // Base damage 1. Crit chance based on precision.
+    const isCrit = Math.random() < (currentOrb.stats.precision / 200); // Max 50% crit
+    const damage = isCrit ? 2 : 1;
 
     setCreatures(prev => prev.map(c => {
       if (c.id === id) {
-        return { ...c, isDead: true };
+        const newHp = c.hp - damage;
+        if (newHp <= 0) {
+          const killValue = c.type === 'rare_bug' ? 5 : c.type === 'virus' ? 3 : 1;
+          incrementKillCount(killValue);
+          return { ...c, isDead: true, hp: 0 };
+        } else {
+          // Hit but not dead - knockback
+          return { 
+            ...c, 
+            hp: newHp,
+            vx: c.vx * -2, // Knockback
+            vy: c.vy * -2
+          };
+        }
       }
       return c;
     }));
 
-    // Remove after animation
+    // Cleanup dead creatures
     setTimeout(() => {
-      setCreatures(prev => prev.filter(c => c.id !== id));
+      setCreatures(prev => prev.filter(c => !(c.id === id && c.isDead)));
     }, 500);
   };
 
@@ -241,15 +349,26 @@ const CyberCreatures: React.FC = () => {
           data-creature="true"
           className={`absolute transition-transform duration-100 pointer-events-auto cursor-crosshair
             ${c.isDead ? 'animate-ping opacity-0' : ''}
+            ${c.isFleeing ? 'opacity-80' : 'opacity-100'}
           `}
           style={{
             left: c.x,
             top: c.y,
-            transform: `translate(-50%, -50%) rotate(${c.rotation}deg) scale(${c.isDead ? 2 : 1})`,
+            transform: `translate(-50%, -50%) rotate(${c.rotation}deg) scale(${c.isDead ? 2 : c.scale})`,
             transition: c.isDead ? 'all 0.2s ease-out' : 'none'
           }}
           onClick={(e) => handleKill(e, c.id)}
         >
+          {/* Health Bar for tougher enemies */}
+          {c.maxHp > 1 && !c.isDead && c.hp < c.maxHp && (
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-1 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-red-500 transition-all duration-200"
+                style={{ width: `${(c.hp / c.maxHp) * 100}%` }}
+              />
+            </div>
+          )}
+
           {c.type === 'bug' && (
             <div className="text-[#00ff00] drop-shadow-[0_0_5px_#00ff00]">
               <Bug size={24} />
@@ -261,13 +380,24 @@ const CyberCreatures: React.FC = () => {
             </div>
           )}
           {c.type === 'drone' && (
-            <div className="text-[#00ffff] drop-shadow-[0_0_5px_#00ffff]">
-              <Bot size={32} />
+            <div className="relative flex items-center justify-center">
+              {/* Armored Shell */}
+              <div className="absolute text-[#00ffff] opacity-30 scale-125">
+                <Shield size={28} fill="currentColor" />
+              </div>
+              <div className="text-[#00ffff] drop-shadow-[0_0_5px_#00ffff] z-10">
+                <Bug size={22} />
+              </div>
             </div>
           )}
           {c.type === 'virus' && (
-            <div className="text-[#ff0000] drop-shadow-[0_0_8px_#ff0000] animate-pulse">
-              <Skull size={28} />
+            <div className="relative flex items-center justify-center">
+              {/* Heavy Shell */}
+              <div className="absolute w-10 h-10 border-2 border-red-500 rounded-full opacity-50 animate-pulse" />
+              <div className="absolute w-8 h-8 bg-red-500/20 rounded-full blur-sm" />
+              <div className="text-[#ff0000] drop-shadow-[0_0_8px_#ff0000] z-10">
+                <Bug size={32} />
+              </div>
             </div>
           )}
           {c.type === 'glitch' && (

@@ -26,7 +26,7 @@ const SystemStatus: React.FC = () => {
         </span>
         <div className="h-3 w-[1px] bg-[#00ffd5]/30 mx-1"></div>
         <span className="text-[10px] font-mono text-[#00ffd5]/70 tracking-wider">
-          v1.0.0
+          v1.1.3
         </span>
       </div>
       

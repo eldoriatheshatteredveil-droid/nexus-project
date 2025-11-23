@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth, UserProfile } from '../hooks/useAuth';
 import { useStore } from '../store';
 import { useMultiplayer } from '../hooks/useMultiplayer';
+import { storage } from '../lib/storage';
 
 const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
   const { user } = useAuth();
-  const { highScores, games } = useStore();
+  const { games } = useStore();
   const { players, messages, queue, activeMatch, sendMessage, joinQueue, leaveQueue } = useMultiplayer(gameId);
   const [activeTab, setActiveTab] = useState<'lobby' | 'chat' | 'leaderboard'>('lobby');
   const [chatInput, setChatInput] = useState('');
@@ -22,13 +23,12 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
 
   useEffect(() => {
     if (activeTab === 'chat') {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // Use block: 'nearest' to prevent scrolling the entire page
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
     if (activeTab === 'leaderboard') {
-      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-      // Sort by kill_count (descending)
-      const sorted = users.sort((a: any, b: any) => (b.kill_count || 0) - (a.kill_count || 0));
-      setLeaderboard(sorted.slice(0, 50)); // Top 50
+      const sorted = storage.getLeaderboard(50);
+      setLeaderboard(sorted);
     }
   }, [messages, activeTab]);
 

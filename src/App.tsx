@@ -10,12 +10,15 @@ import About from './pages/About';
 import PlayGame from './pages/PlayGame';
 import Profile from './pages/Profile';
 import SimulatedEmail from './pages/SimulatedEmail';
+import NexusAI from './pages/NexusAI';
 import ThemeManager from './components/ThemeManager';
+import MusicPlayer from './components/MusicPlayer';
 
 const App: React.FC = () => {
   return (
     <Router>
       <ThemeManager />
+      <MusicPlayer />
       <Routes>
         {/* Game Route - No Layout */}
         <Route path="/play/:gameId" element={<PlayGame />} />
@@ -28,6 +31,7 @@ const App: React.FC = () => {
           <Layout>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/nexus" element={<NexusAI />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/about" element={<About />} />
               <Route path="/privacy" element={<Privacy />} />

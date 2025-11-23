@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/auth';
 import { useStore } from '../store';
+import { storage } from '../lib/storage';
 
 export interface UserProfile {
   id: string;
@@ -21,7 +22,7 @@ const TESTER_KEY = "tester2025";
 export const useAuth = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setKillCount, setXp, setPlayTime, setIsAuthenticated } = useStore();
+  const { setKillCount, setXp, setPlayTime, setIsAuthenticated, loadUserData } = useStore();
 
   // Update presence (last_seen) periodically
   useEffect(() => {
@@ -30,22 +31,16 @@ export const useAuth = () => {
     const updatePresence = () => {
       const now = new Date().toISOString();
       
-      // Update in local state
-      // setUser(prev => prev ? ({ ...prev, last_seen: now }) : null); // Avoid causing re-renders loop if not careful, but actually we don't need to update the state object for this, just the storage.
-
       // Update in storage
       if (user.is_dev || user.is_tester) {
-        // Dev/Tester session
-        const sessionKey = user.is_dev ? 'nexus_dev_session' : 'nexus_dev_session'; // logic in original code uses nexus_dev_session for both?
-        // Actually original code: localStorage.setItem('nexus_dev_session', JSON.stringify(devUser)); for both dev and tester.
-        const stored = localStorage.getItem('nexus_dev_session');
+        const sessionKey = 'nexus_dev_session';
+        const stored = localStorage.getItem(sessionKey);
         if (stored) {
           const parsed = JSON.parse(stored);
           parsed.last_seen = now;
-          localStorage.setItem('nexus_dev_session', JSON.stringify(parsed));
+          localStorage.setItem(sessionKey, JSON.stringify(parsed));
         }
       } else {
-        // Regular user session
         const stored = localStorage.getItem('nexus_user_session');
         if (stored) {
           const parsed = JSON.parse(stored);
@@ -53,12 +48,10 @@ export const useAuth = () => {
           localStorage.setItem('nexus_user_session', JSON.stringify(parsed));
         }
 
-        // Also update in registered users list
-        const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-        const userIndex = users.findIndex((u: any) => u.id === user.id);
-        if (userIndex >= 0) {
-          users[userIndex].last_seen = now;
-          localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+        // Update in central storage
+        const storedUser = storage.getUser(user.id);
+        if (storedUser) {
+          storage.saveUser({ ...storedUser, last_seen: now });
         }
       }
     };
@@ -87,6 +80,7 @@ export const useAuth = () => {
       }
 
       setUser(devUser);
+      loadUserData(devUser.id);
       
       if (devUser.is_dev) {
         setKillCount(devUser.kill_count || 99999);
@@ -107,6 +101,7 @@ export const useAuth = () => {
     if (userSession) {
       const standardUser = JSON.parse(userSession);
       setUser(standardUser);
+      loadUserData(standardUser.id);
       setLoading(false);
       return;
     }
@@ -159,6 +154,8 @@ export const useAuth = () => {
       };
       localStorage.setItem('nexus_dev_session', JSON.stringify(devUser));
       setUser(devUser);
+      loadUserData(devUser.id);
+      // Override for dev
       setKillCount(99999);
       setXp(157680000); // Level 50
       setPlayTime(0); // Reset time for dev
@@ -177,6 +174,7 @@ export const useAuth = () => {
       };
       localStorage.setItem('nexus_dev_session', JSON.stringify(testerUser));
       setUser(testerUser);
+      loadUserData(testerUser.id);
       // Testers start with 0 stats to simulate new user experience
       setKillCount(0);
       setXp(0);
@@ -190,17 +188,14 @@ export const useAuth = () => {
   const signInWithUsername = async (username: string, password: string) => {
     // MOCK AUTH IMPLEMENTATION
     // Check local storage for registered users
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const users = storage.getAllUsers();
     const foundUser = users.find((u: any) => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
 
     if (foundUser) {
       // Auto-verify if not verified (since we are removing email verification step for ease)
       if (!foundUser.verified) {
          foundUser.verified = true;
-         // Update users array
-         const userIndex = users.findIndex((u: any) => u.id === foundUser.id);
-         users[userIndex] = foundUser;
-         localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+         storage.saveUser(foundUser);
       }
 
       const userProfile: UserProfile = {
@@ -214,6 +209,7 @@ export const useAuth = () => {
       };
       localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
       setUser(userProfile);
+      loadUserData(userProfile.id);
       return { data: { user: userProfile }, error: null };
     }
 
@@ -222,9 +218,9 @@ export const useAuth = () => {
 
   const signUpWithUsername = async (username: string, password: string) => {
     // MOCK AUTH IMPLEMENTATION
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const users = storage.getAllUsers();
     
-    if (users.find((u: any) => u.username.toLowerCase() === username.toLowerCase())) {
+    if (users.find((u: any) => u.username?.toLowerCase() === username.toLowerCase())) {
       return { data: null, error: { message: 'Username already taken. Please choose another.' } };
     }
 
@@ -237,8 +233,7 @@ export const useAuth = () => {
       kill_count: 0
     };
 
-    users.push(newUser);
-    localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+    storage.saveUser(newUser);
 
     // Auto login
     const userProfile: UserProfile = {
@@ -252,20 +247,21 @@ export const useAuth = () => {
     };
     localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
     setUser(userProfile);
+    loadUserData(userProfile.id);
 
     return { data: { user: userProfile }, error: null };
   };
 
   const verifyUser = (email: string) => {
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const users = storage.getAllUsers();
     const userIndex = users.findIndex((u: any) => u.email === email);
     
     if (userIndex >= 0) {
-      users[userIndex].verified = true;
-      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      const user = users[userIndex];
+      user.verified = true;
+      storage.saveUser(user);
       
       // Auto login after verification
-      const user = users[userIndex];
       const userProfile: UserProfile = {
         id: user.id,
         email: user.email,
@@ -276,6 +272,7 @@ export const useAuth = () => {
       };
       localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
       setUser(userProfile);
+      loadUserData(userProfile.id);
       return true;
     }
     return false;
@@ -284,7 +281,7 @@ export const useAuth = () => {
   const signInWithEmail = async (email: string, password: string) => {
     // MOCK AUTH IMPLEMENTATION
     // Check local storage for registered users
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const users = storage.getAllUsers();
     const foundUser = users.find((u: any) => u.email === email && u.password === password);
 
     if (foundUser) {
@@ -302,6 +299,7 @@ export const useAuth = () => {
       };
       localStorage.setItem('nexus_user_session', JSON.stringify(userProfile));
       setUser(userProfile);
+      loadUserData(userProfile.id);
       return { data: { user: userProfile }, error: null };
     }
 
@@ -323,7 +321,7 @@ export const useAuth = () => {
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
     // MOCK AUTH IMPLEMENTATION
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const users = storage.getAllUsers();
     
     if (users.find((u: any) => u.email === email)) {
       return { data: null, error: { message: 'User already exists' } };
@@ -337,8 +335,7 @@ export const useAuth = () => {
       verified: false
     };
 
-    users.push(newUser);
-    localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+    storage.saveUser(newUser);
 
     // Return success but indicate verification needed (no session created)
     return { data: { user: { ...newUser, kill_count: 0 } }, error: null };
@@ -367,11 +364,9 @@ export const useAuth = () => {
       localStorage.setItem('nexus_user_session', JSON.stringify(updatedUser));
       
       // Update in registered users list too
-      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.id === user.id);
-      if (userIndex >= 0) {
-        users[userIndex].username = newUsername;
-        localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      const storedUser = storage.getUser(user.id);
+      if (storedUser) {
+        storage.saveUser({ ...storedUser, username: newUsername });
       }
     }
   };
@@ -388,11 +383,9 @@ export const useAuth = () => {
       localStorage.setItem('nexus_user_session', JSON.stringify(updatedUser));
       
       // Update in registered users list too
-      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-      const userIndex = users.findIndex((u: any) => u.id === user.id);
-      if (userIndex >= 0) {
-        users[userIndex].faction = faction;
-        localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      const storedUser = storage.getUser(user.id);
+      if (storedUser) {
+        storage.saveUser({ ...storedUser, faction });
       }
     }
   };

@@ -9,7 +9,6 @@ import CyberCreatures from './CyberCreatures';
 import CyberHUD from './CyberHUD';
 import CyberCursor from './CyberCursor';
 import OrbMenu from './OrbMenu';
-import MusicPlayer from './MusicPlayer';
 import Terminal from './Terminal';
 import BlackMarket from './BlackMarket';
 import FactionSelector from './FactionSelector';
@@ -17,6 +16,8 @@ import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
 import '../index.css';
+
+import { ORBS } from '../data/orbs';
 
 interface BulletHole {
   id: number;
@@ -39,18 +40,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const killCount = useStore((state) => state.killCount);
   const { user } = useAuth();
 
-  // Sync killCount to registered users for leaderboard
-  useEffect(() => {
-    if (!user) return;
-    
-    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
-    const userIndex = users.findIndex((u: any) => u.id === user.id);
-    
-    if (userIndex >= 0 && users[userIndex].kill_count !== killCount) {
-      users[userIndex].kill_count = killCount;
-      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
-    }
-  }, [killCount, user]);
+  // Weapon Cooldown Logic
+  const { selectedOrbId, lastShotTimestamp, setLastShotTimestamp } = useStore();
+  const currentOrb = ORBS.find(o => o.id === selectedOrbId) || ORBS[0];
+  const cooldown = Math.max(100, 1000 - (currentOrb.stats.speed * 9));
 
   // Check for faction selection - Only for authenticated users who haven't chosen yet
   useEffect(() => {
@@ -112,6 +105,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     
     if (isInteractive) return;
     
+    // Check Cooldown
+    const now = Date.now();
+    if (now - lastShotTimestamp < cooldown) {
+      return;
+    }
+    setLastShotTimestamp(now);
+
     playGunshot();
 
     const newHole: BulletHole = {
@@ -177,7 +177,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Custom cursor: Tech Reticle */}
       <CyberCursor />
       <OrbMenu />
-      <MusicPlayer />
       
       {/* Overlays */}
       <Terminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} />

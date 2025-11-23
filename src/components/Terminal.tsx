@@ -18,7 +18,7 @@ interface TerminalProps {
 const Terminal: React.FC<TerminalProps> = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<CommandHistory[]>([
-    { type: 'output', content: 'NEXUS_OS v2.4.0 initialized...' },
+    { type: 'output', content: 'NEXUS_OS v1.1.3 initialized...' },
     { type: 'output', content: 'Type "help" for available commands.' }
   ]);
   
@@ -26,10 +26,11 @@ const Terminal: React.FC<TerminalProps> = ({ isOpen, onClose }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
   
   const { user } = useAuth();
-  const { playClick, playSwitch, playGlitch } = useCyberSound();
+  const { playClick, playGlitch } = useCyberSound();
   const { 
     credits, addCredits, 
     faction, setFaction, 
+    factionScores,
     killCount, 
     xp, addXp,
     inventory, addItem,
@@ -96,12 +97,12 @@ STATUS REPORT:
         break;
 
       case 'war':
-        const syndicateScore = 45000 + Math.floor(Math.random() * 5000);
-        const securityScore = 42000 + Math.floor(Math.random() * 5000);
+        const syndicateScore = factionScores.syndicate;
+        const securityScore = factionScores.security;
         const total = syndicateScore + securityScore;
-        const synPercent = Math.floor((syndicateScore / total) * 100);
-        const secPercent = Math.floor((securityScore / total) * 100);
-        const winning = syndicateScore > securityScore ? 'SYNDICATE' : 'SECURITY';
+        const synPercent = total === 0 ? 50 : Math.floor((syndicateScore / total) * 100);
+        const secPercent = total === 0 ? 50 : Math.floor((securityScore / total) * 100);
+        const winning = syndicateScore > securityScore ? 'SYNDICATE' : securityScore > syndicateScore ? 'SECURITY' : 'NEUTRAL';
         
         newHistory.push({ 
           type: 'output', 

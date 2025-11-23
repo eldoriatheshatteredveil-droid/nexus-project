@@ -64,7 +64,7 @@ const About: React.FC = () => {
               NEXUS PROJECT <span className="text-[#00ffd5] mx-2">•</span> ARCHITECTED BY <span className="text-white hover:text-[#00ffd5] transition-colors cursor-default">NVIOUS SYSTEMS</span>
             </p>
             <p className="text-[10px] text-gray-600 mt-2 font-mono">
-              EST. 2025 // SYSTEM VERSION 1.0.0
+              EST. 2025 // SYSTEM VERSION 1.1.3
               <br />
               <span className="opacity-50">Built with the assistance of artificial intelligence tools.</span>
             </p>
