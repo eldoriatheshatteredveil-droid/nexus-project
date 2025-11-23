@@ -5,7 +5,7 @@ import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, Ali
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
-import { Game, GENRES } from '../data/games';
+import { Game } from '../data/games';
 import GameCardHolographic from '../components/GameCardHolographic';
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -20,7 +20,6 @@ const Upload: React.FC = () => {
   const [version, setVersion] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'ai' | 'dev'>('ai');
-  const [genre, setGenre] = useState(GENRES[0]);
   const [gameMode, setGameMode] = useState<'singleplayer' | 'multiplayer'>('singleplayer');
   const [gameType, setGameType] = useState<'browser' | 'download'>('browser');
   const [gameUrl, setGameUrl] = useState('');
@@ -115,7 +114,7 @@ const Upload: React.FC = () => {
       payWhatYouWant: true,
       cover: coverImage || `https://source.unsplash.com/900x900/?cyberpunk,game&sig=${Date.now()}`,
       description: description || 'No description provided.',
-      tags: [genre, 'Indie', 'New Release', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
+      tags: [category === 'ai' ? 'AI Games' : 'Indie Games', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
       rating: 0,
       downloads: 0,
       category: category,
@@ -141,7 +140,7 @@ const Upload: React.FC = () => {
     payWhatYouWant: true,
     cover: coverImage || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1000',
     description: description || 'System description pending...',
-    tags: [genre, category === 'ai' ? 'AI Generated' : 'Dev Made', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
+    tags: [category === 'ai' ? 'AI Games' : 'Indie Games', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
     rating: 5.0,
     downloads: 0,
     category: category,
@@ -325,22 +324,11 @@ const Upload: React.FC = () => {
                   </label>
                   <CustomDropdown
                     options={[
-                      { label: 'AI TOOLS', value: 'ai' },
+                      { label: 'AI GAMES', value: 'ai' },
                       { label: 'INDIE GAMES', value: 'dev' }
                     ]}
                     value={category}
                     onChange={(val) => setCategory(val as 'ai' | 'dev')}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider select-none">
-                    <Tag size={14} /> Genre
-                  </label>
-                  <CustomDropdown
-                    options={GENRES.map(g => ({ label: g.toUpperCase(), value: g }))}
-                    value={genre}
-                    onChange={(val) => setGenre(val)}
                   />
                 </div>
               </div>
@@ -403,7 +391,7 @@ const Upload: React.FC = () => {
                   <div className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
                     <span className="font-bold text-white">I certify that I have the rights to upload this content.</span>
                     <br />
-                    I confirm this project does not infringe on any third-party copyrights or trademarks. If AI tools were used, I have disclosed this in the description/tags. I agree to the <a href="/terms" className="text-[#00ffd5] hover:underline" target="_blank">Terms of Service</a>.
+                    I confirm this project does not infringe on any third-party copyrights or trademarks. If AI games were used, I have disclosed this in the description/tags. I agree to the <a href="/terms" className="text-[#00ffd5] hover:underline" target="_blank">Terms of Service</a>.
                   </div>
                 </label>
               </div>

@@ -23,14 +23,9 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
   const { user } = useAuth();
   
   // Multiplayer Hooks
-  const { activeMatch, gameState: mpGameState, updateGameState } = useMultiplayer('nexus-pong');
+  const { activeMatch, gameState: mpGameState, updateGameState, isHost, opponent } = useMultiplayer('nexus-pong');
   const isMultiplayer = !!activeMatch;
   
-  // Determine Player Role
-  const playerIndex = isMultiplayer && mpGameState?.players ? 
-    (Object.keys(mpGameState.players)[0] === user?.id ? 0 : 1) : 0;
-  const isHost = playerIndex === 0; // Host calculates physics
-
   // Game State
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState({ player: 0, ai: 0 });
@@ -59,18 +54,15 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
     if (!isMultiplayer || !mpGameState) return;
 
     // Sync Opponent Paddle
-    if (mpGameState.players) {
-      const opponentId = Object.keys(mpGameState.players).find(id => id !== user?.id);
-      if (opponentId && mpGameState.players[opponentId]) {
-        const opponentY = mpGameState.players[opponentId].y;
-        if (typeof opponentY === 'number') {
-           // If I am P1, opponent is AI (Right) paddle. If I am P2, opponent is Player (Left) paddle.
-           if (isHost) {
-             gameState.current.aiY = opponentY;
-           } else {
-             gameState.current.playerY = opponentY;
-           }
-        }
+    if (mpGameState.players && opponent) {
+      const opponentData = mpGameState.players[opponent.id];
+      if (opponentData && typeof opponentData.y === 'number') {
+         // If I am Host (P1), opponent is AI (Right) paddle. If I am Guest (P2), opponent is Player (Left) paddle.
+         if (isHost) {
+           gameState.current.aiY = opponentData.y;
+         } else {
+           gameState.current.playerY = opponentData.y;
+         }
       }
     }
 
@@ -89,7 +81,7 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
       setIsPlaying(true);
     }
 
-  }, [mpGameState, isMultiplayer, isHost, user, isPlaying, gameOver]);
+  }, [mpGameState, isMultiplayer, isHost, user, isPlaying, gameOver, opponent]);
 
   const resetGame = () => {
     gameState.current = {
@@ -344,9 +336,11 @@ const NexusPong: React.FC<NexusPongProps> = ({ playerName = 'PLAYER', opponentNa
   return (
     <div className="flex flex-col items-center justify-center p-4 bg-black/50 rounded-xl border border-[#00ffd5]/30 backdrop-blur-sm">
       <div className="mb-4 flex justify-between w-full max-w-[800px] text-[#00ffd5] font-mono text-xl">
-        <span className="text-[#00ffd5]">{isMultiplayer && !isHost ? 'OPPONENT' : playerName}: {score.player}</span>
+        <span className="text-[#00ffd5]">
+          {isMultiplayer ? (isHost ? (user?.username || 'PLAYER') : (opponent?.username || 'OPPONENT')) : playerName}: {score.player}
+        </span>
         <span className={isMultiplayer ? "text-[#ff66cc]" : "text-[#ff0055]"}>
-          {isMultiplayer ? (isHost ? 'OPPONENT' : playerName) : opponentName}: {score.ai}
+          {isMultiplayer ? (isHost ? (opponent?.username || 'OPPONENT') : (user?.username || 'PLAYER')) : opponentName}: {score.ai}
         </span>
       </div>
 

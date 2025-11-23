@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '../lib/auth';
 import { useAuth, UserProfile } from './useAuth';
 
 export interface ChatMessage {
@@ -12,7 +14,7 @@ export interface ChatMessage {
 
 export interface LobbyPlayer extends UserProfile {
   status: 'online' | 'in-queue' | 'in-game';
-  lastPing: number;
+  lastPing?: number;
 }
 
 interface GameState {
@@ -24,37 +26,184 @@ interface GameState {
 
 const STORAGE_KEY = 'nexus_multiplayer_state';
 const PING_INTERVAL = 5000;
-const CLEANUP_INTERVAL = 10000;
+
+// Check if Supabase is properly configured (not using the placeholder)
+const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
+                             !import.meta.env.VITE_SUPABASE_URL.includes('xyzcompany');
 
 export const useMultiplayer = (gameId: string) => {
   const { user } = useAuth();
   const [players, setPlayers] = useState<LobbyPlayer[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [queue, setQueue] = useState<string[]>([]); // User IDs
-  const [activeMatch, setActiveMatch] = useState<string | null>(null); // Match ID if in game
+  const [queue, setQueue] = useState<string[]>([]);
+  const [activeMatch, setActiveMatch] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [matchMetadata, setMatchMetadata] = useState<{ hostId: string, guestId: string } | null>(null);
+  
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const matchChannelRef = useRef<RealtimeChannel | null>(null);
 
+  // Derived state
+  const isHost = !!(user && matchMetadata && user.id === matchMetadata.hostId);
+  const opponent = players.find(p => 
+    matchMetadata && (p.id === matchMetadata.hostId || p.id === matchMetadata.guestId) && p.id !== user?.id
+  );
+
+  // --------------------------------------------------------------------------
+  // SUPABASE IMPLEMENTATION (Online)
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    if (!isSupabaseConfigured || !gameId) return;
+
+    // Clean up previous channel if exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+    }
+
+    const channel = supabase.channel(`lobby:${gameId}`, {
+      config: {
+        presence: {
+          key: user?.id || `anon-${Date.now()}`,
+        },
+      },
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const activePlayers: LobbyPlayer[] = [];
+        const queueIds: string[] = [];
+
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((p: any) => {
+            // Only add if it's a real user (has id and username)
+            if (p.id && !p.id.startsWith('anon-')) {
+                activePlayers.push(p);
+                if (p.status === 'in-queue') {
+                queueIds.push(p.id);
+                }
+            }
+          });
+        });
+
+        setPlayers(activePlayers);
+        setQueue(queueIds);
+
+        // Matchmaking Logic (Host Side)
+        if (user) {
+            const myPresence = activePlayers.find(p => p.id === user.id);
+            if (myPresence?.status === 'in-queue') {
+            const opponents = activePlayers.filter(p => p.status === 'in-queue' && p.id !== user.id);
+            if (opponents.length > 0) {
+                const sortedIds = [user.id, opponents[0].id].sort();
+                if (sortedIds[0] === user.id) {
+                const matchId = `match:${Date.now()}:${user.id}`;
+                channel.send({
+                    type: 'broadcast',
+                    event: 'match_invite',
+                    payload: {
+                    matchId,
+                    hostId: user.id,
+                    guestId: opponents[0].id,
+                    hostName: user.username,
+                    guestName: opponents[0].username
+                    }
+                });
+                }
+            }
+            }
+        }
+      })
+      .on('broadcast', { event: 'chat' }, ({ payload }) => {
+        setMessages(prev => [...prev.slice(-49), payload]);
+      })
+      .on('broadcast', { event: 'match_invite' }, ({ payload }) => {
+        if (user && (payload.hostId === user.id || payload.guestId === user.id)) {
+          setActiveMatch(payload.matchId);
+          setMatchMetadata({ hostId: payload.hostId, guestId: payload.guestId });
+          
+          channel.track({
+            ...user,
+            status: 'in-game'
+          });
+
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            userId: 'system',
+            username: 'NEXUS',
+            text: `MATCH STARTED: ${payload.hostName} vs ${payload.guestName}`,
+            timestamp: Date.now(),
+            system: true
+          }]);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED' && user) {
+          await channel.track({
+            ...user,
+            status: 'online'
+          });
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, gameId]);
+
+  // Handle Active Match Channel (Supabase)
+  useEffect(() => {
+    if (!isSupabaseConfigured || !activeMatch || !user) return;
+
+    if (matchChannelRef.current) {
+      supabase.removeChannel(matchChannelRef.current);
+    }
+
+    const matchChannel = supabase.channel(activeMatch);
+
+    matchChannel
+      .on('broadcast', { event: 'game_state' }, ({ payload }) => {
+        setGameState(payload);
+      })
+      .subscribe();
+
+    matchChannelRef.current = matchChannel;
+
+    return () => {
+      if (matchChannelRef.current) {
+        supabase.removeChannel(matchChannelRef.current);
+      }
+    };
+  }, [activeMatch, user]);
+
+
+  // --------------------------------------------------------------------------
+  // LOCAL STORAGE IMPLEMENTATION (Fallback / Offline)
+  // --------------------------------------------------------------------------
+  
   // Helper to get full state
-  const getStorageState = () => {
+  const getStorageState = useCallback(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"lobbies": {}, "matches": {}}');
     } catch {
       return { lobbies: {}, matches: {} };
     }
-  };
+  }, []);
 
   // Helper to save state
-  const setStorageState = (newState: any) => {
+  const setStorageState = useCallback((newState: any) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-    // Dispatch event for other tabs
     window.dispatchEvent(new Event('storage'));
-  };
+  }, []);
 
-  // Initialize / Join Lobby
+  // Initialize / Join Lobby (Local)
   useEffect(() => {
-    if (!user) return;
+    if (isSupabaseConfigured) return;
 
     const joinLobby = () => {
+      if (!user) return;
       const state = getStorageState();
       if (!state.lobbies[gameId]) {
         state.lobbies[gameId] = { players: {}, messages: [], queue: [] };
@@ -72,7 +221,7 @@ export const useMultiplayer = (gameId: string) => {
     joinLobby();
 
     const interval = setInterval(() => {
-      // Heartbeat
+      if (!user) return;
       const state = getStorageState();
       if (state.lobbies[gameId]?.players[user.id]) {
         state.lobbies[gameId].players[user.id].lastPing = Date.now();
@@ -82,24 +231,29 @@ export const useMultiplayer = (gameId: string) => {
 
     return () => {
       clearInterval(interval);
-      // Leave lobby on unmount
-      const state = getStorageState();
-      if (state.lobbies[gameId]?.players[user.id]) {
-        delete state.lobbies[gameId].players[user.id];
-        // Also remove from queue
-        state.lobbies[gameId].queue = state.lobbies[gameId].queue.filter((id: string) => id !== user.id);
-        setStorageState(state);
+      if (user) {
+        const state = getStorageState();
+        if (state.lobbies[gameId]?.players[user.id]) {
+            delete state.lobbies[gameId].players[user.id];
+            state.lobbies[gameId].queue = state.lobbies[gameId].queue.filter((id: string) => id !== user.id);
+            setStorageState(state);
+        }
       }
     };
-  }, [user, gameId]);
+  }, [user, gameId, getStorageState, setStorageState]);
 
-  // Sync State & Cleanup
+  // Sync State & Cleanup (Local)
   useEffect(() => {
+    if (isSupabaseConfigured) return;
+
     const sync = () => {
       const state = getStorageState();
       const lobby = state.lobbies[gameId];
       
-      if (!lobby) return;
+      if (!lobby) {
+          setPlayers([]);
+          return;
+      }
 
       // Cleanup stale players (timeout 15s)
       const now = Date.now();
@@ -126,9 +280,16 @@ export const useMultiplayer = (gameId: string) => {
         if (matchId) {
           setActiveMatch(matchId);
           setGameState(state.matches[matchId].state);
+          
+          // Set metadata for local match
+          const p1 = state.matches[matchId].players[0];
+          const p2 = state.matches[matchId].players[1];
+          setMatchMetadata({ hostId: p1, guestId: p2 });
+
         } else {
           setActiveMatch(null);
           setGameState(null);
+          setMatchMetadata(null);
         }
       }
     };
@@ -141,89 +302,139 @@ export const useMultiplayer = (gameId: string) => {
       clearInterval(interval);
       window.removeEventListener('storage', sync);
     };
-  }, [gameId, user]);
+  }, [gameId, user, getStorageState, setStorageState]);
 
-  // Actions
-  const sendMessage = (text: string) => {
+
+  // --------------------------------------------------------------------------
+  // UNIFIED ACTIONS
+  // --------------------------------------------------------------------------
+
+  const sendMessage = async (text: string) => {
     if (!user) return;
-    const state = getStorageState();
-    if (!state.lobbies[gameId]) return;
 
-    const msg: ChatMessage = {
-      id: Date.now().toString(),
-      userId: user.id,
-      username: user.username || 'Unknown',
-      text,
-      timestamp: Date.now()
-    };
+    if (isSupabaseConfigured) {
+        if (!channelRef.current) return;
+        const msg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username || 'Unknown',
+            text,
+            timestamp: Date.now()
+        };
+        setMessages(prev => [...prev.slice(-49), msg]);
+        await channelRef.current.send({
+            type: 'broadcast',
+            event: 'chat',
+            payload: msg
+        });
+    } else {
+        const state = getStorageState();
+        if (!state.lobbies[gameId]) return;
 
-    state.lobbies[gameId].messages = [...(state.lobbies[gameId].messages || []).slice(-49), msg];
-    setStorageState(state);
-  };
-
-  const joinQueue = () => {
-    if (!user) return;
-    const state = getStorageState();
-    const lobby = state.lobbies[gameId];
-    
-    if (!lobby.queue.includes(user.id)) {
-      lobby.queue.push(user.id);
-      lobby.players[user.id].status = 'in-queue';
-      
-      // Matchmaking Logic (Simple 1v1)
-      if (lobby.queue.length >= 2) {
-        const p1 = lobby.queue.shift();
-        const p2 = lobby.queue.shift();
-        
-        const matchId = `match-${Date.now()}`;
-        state.matches[matchId] = {
-          id: matchId,
-          gameId,
-          players: [p1, p2],
-          startTime: Date.now(),
-          state: {
-            status: 'waiting',
-            players: {},
-            score: { p1: 0, p2: 0 }
-          }
+        const msg: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.username || 'Unknown',
+            text,
+            timestamp: Date.now()
         };
 
-        // Update player status
-        lobby.players[p1].status = 'in-game';
-        lobby.players[p2].status = 'in-game';
-        
-        // System message
-        const sysMsg: ChatMessage = {
-          id: Date.now().toString(),
-          userId: 'system',
-          username: 'NEXUS',
-          text: `MATCH STARTED: ${lobby.players[p1].username} vs ${lobby.players[p2].username}`,
-          timestamp: Date.now(),
-          system: true
-        };
-        lobby.messages.push(sysMsg);
-      }
-      
-      setStorageState(state);
+        state.lobbies[gameId].messages = [...(state.lobbies[gameId].messages || []).slice(-49), msg];
+        setStorageState(state);
     }
   };
 
-  const leaveQueue = () => {
+  const joinQueue = async () => {
     if (!user) return;
-    const state = getStorageState();
-    const lobby = state.lobbies[gameId];
-    
-    lobby.queue = lobby.queue.filter((id: string) => id !== user.id);
-    lobby.players[user.id].status = 'online';
-    setStorageState(state);
+
+    if (isSupabaseConfigured) {
+        if (!channelRef.current) return;
+        await channelRef.current.track({
+            ...user,
+            status: 'in-queue'
+        });
+    } else {
+        const state = getStorageState();
+        const lobby = state.lobbies[gameId];
+        
+        if (!lobby.queue.includes(user.id)) {
+            lobby.queue.push(user.id);
+            lobby.players[user.id].status = 'in-queue';
+            
+            // Matchmaking Logic (Simple 1v1 Local)
+            if (lobby.queue.length >= 2) {
+                const p1 = lobby.queue.shift();
+                const p2 = lobby.queue.shift();
+                
+                const matchId = `match-${Date.now()}`;
+                state.matches[matchId] = {
+                    id: matchId,
+                    gameId,
+                    players: [p1, p2],
+                    startTime: Date.now(),
+                    state: {
+                        status: 'waiting',
+                        players: {},
+                        score: { p1: 0, p2: 0 }
+                    }
+                };
+
+                lobby.players[p1].status = 'in-game';
+                lobby.players[p2].status = 'in-game';
+                
+                const sysMsg: ChatMessage = {
+                    id: Date.now().toString(),
+                    userId: 'system',
+                    username: 'NEXUS',
+                    text: `MATCH STARTED: ${lobby.players[p1].username} vs ${lobby.players[p2].username}`,
+                    timestamp: Date.now(),
+                    system: true
+                };
+                lobby.messages.push(sysMsg);
+            }
+            setStorageState(state);
+        }
+    }
   };
 
-  const updateGameState = (newState: Partial<GameState>) => {
+  const leaveQueue = async () => {
+    if (!user) return;
+
+    if (isSupabaseConfigured) {
+        if (!channelRef.current) return;
+        await channelRef.current.track({
+            ...user,
+            status: 'online'
+        });
+    } else {
+        const state = getStorageState();
+        const lobby = state.lobbies[gameId];
+        lobby.queue = lobby.queue.filter((id: string) => id !== user.id);
+        lobby.players[user.id].status = 'online';
+        setStorageState(state);
+    }
+  };
+
+  const updateGameState = async (newState: Partial<GameState>) => {
     if (!activeMatch) return;
-    const state = getStorageState();
-    if (state.matches[activeMatch]) {
-      state.matches[activeMatch].state = { ...state.matches[activeMatch].state, ...newState };
-      setStorageState(state);
+
+    if (isSupabaseConfigured) {
+        if (!matchChannelRef.current) return;
+        setGameState(prev => {
+            if (!prev) return newState as GameState;
+            return { ...prev, ...newState };
+        });
+        await matchChannelRef.current.send({
+            type: 'broadcast',
+            event: 'game_state',
+            payload: newState
+        });
+    } else {
+        const state = getStorageState();
+        if (state.matches[activeMatch]) {
+            state.matches[activeMatch].state = { ...state.matches[activeMatch].state, ...newState };
+            setStorageState(state);
+        }
     }
   };
 
@@ -233,9 +444,12 @@ export const useMultiplayer = (gameId: string) => {
     queue,
     activeMatch,
     gameState,
+    isHost,
+    opponent,
     sendMessage,
     joinQueue,
     leaveQueue,
     updateGameState
   };
 };
+

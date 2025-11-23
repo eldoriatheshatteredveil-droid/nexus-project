@@ -7,12 +7,8 @@ echo "Starting the build process for NEXUS..."
 echo "Installing dependencies..."
 npm install
 
-# Build the Next.js application
-echo "Building the Next.js application..."
+# Build the Vite application
+echo "Building the Vite application..."
 npm run build
-
-# Export the application for static hosting
-echo "Exporting the application..."
-npm run export
 
 echo "Build process completed successfully!"

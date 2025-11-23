@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Skull, Check } from 'lucide-react';
 import { useStore } from '../store';
 import { useCyberSound } from '../hooks/useCyberSound';
+import { useAuth } from '../hooks/useAuth';
 
 interface FactionSelectorProps {
   isOpen: boolean;
@@ -11,11 +12,13 @@ interface FactionSelectorProps {
 
 const FactionSelector: React.FC<FactionSelectorProps> = ({ isOpen, onClose }) => {
   const { setFaction } = useStore();
+  const { updateFaction } = useAuth();
   const { playClick, playSwitch } = useCyberSound();
 
   const handleSelect = (faction: 'syndicate' | 'security') => {
     playSwitch();
     setFaction(faction);
+    updateFaction(faction);
     setTimeout(() => {
       playClick();
       onClose();

@@ -133,17 +133,26 @@ const GameDetailModal: React.FC<GameDetailModalProps> = ({ game, isOpen, onClose
               </div>
 
               {/* Right Column: Details */}
-              <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 bg-[#0a0a0a]">
+              <div className="w-full md:w-1/3 p-6 flex flex-col gap-6 bg-[#0a0a0a] overflow-y-auto custom-scrollbar">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-bold bg-primary/10 text-primary rounded border border-primary/20">
-                      {game.category.toUpperCase()}
-                    </span>
-                    {game.tags.map(tag => (
-                      <span key={tag} className="px-2 py-1 text-xs text-gray-400 border border-white/10 rounded">
-                        {tag}
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    {game.tags.includes('Nexus Original') && (
+                      <span className="px-2 py-1 text-xs font-bold bg-[#00ffd5]/10 text-[#00ffd5] rounded border border-[#00ffd5]/20">
+                        NEXUS ORIGINAL
                       </span>
-                    ))}
+                    )}
+                    <span className="px-2 py-1 text-xs font-bold bg-white/10 text-white rounded border border-white/20">
+                      {game.category === 'ai' ? 'AI GAMES' : 'INDIE GAMES'}
+                    </span>
+                    {game.mode && (
+                      <span className={`px-2 py-1 text-xs font-bold rounded border uppercase ${
+                        game.mode === 'multiplayer' 
+                        ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20' 
+                        : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                      }`}>
+                        {game.mode}
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-3xl font-bold text-white mb-2 font-orbitron">{game.title}</h2>
                   <div className="flex items-center gap-4 text-sm text-gray-400">

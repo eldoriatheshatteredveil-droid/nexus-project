@@ -12,6 +12,7 @@ export interface UserProfile {
   kill_count?: number;
   verified?: boolean;
   last_seen?: string; // ISO Date string
+  faction?: 'syndicate' | 'security' | null;
 }
 
 const DEV_KEY = "1113199011 131990";
@@ -375,6 +376,27 @@ export const useAuth = () => {
     }
   };
 
+  const updateFaction = async (faction: 'syndicate' | 'security') => {
+    if (!user) return;
+
+    const updatedUser = { ...user, faction };
+    setUser(updatedUser);
+
+    if (user.is_dev || user.is_tester) {
+      localStorage.setItem('nexus_dev_session', JSON.stringify(updatedUser));
+    } else {
+      localStorage.setItem('nexus_user_session', JSON.stringify(updatedUser));
+      
+      // Update in registered users list too
+      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+      const userIndex = users.findIndex((u: any) => u.id === user.id);
+      if (userIndex >= 0) {
+        users[userIndex].faction = faction;
+        localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+      }
+    }
+  };
+
   return {
     user,
     loading,
@@ -383,6 +405,7 @@ export const useAuth = () => {
     signUpWithUsername,
     signOut,
     updateUsername,
+    updateFaction,
     verifyUser
   };
 };

@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Tag, Star, Zap, Code, Cpu, Gamepad2, LayoutGrid } from 'lucide-react';
-import { GENRES } from '../data/games';
+import { Search, Filter, Tag, Star, Zap, Code, Cpu, Gamepad2, LayoutGrid, User, Users } from 'lucide-react';
 import { useStore } from '../store';
 import GameCardHolographic from './GameCardHolographic';
 import GameDetailModal from './GameDetailModal';
 
 const Storefront: React.FC = () => {
   const games = useStore((state) => state.games);
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'nvious' | 'ai' | 'dev'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'nvious' | 'ai' | 'dev' | 'singleplayer' | 'multiplayer'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
   const filteredGames = games.filter(game => {
-    const matchesCategory = selectedCategory === 'all' || game.category === selectedCategory;
+    let matchesCategory = true;
+    
+    if (selectedCategory === 'singleplayer') {
+      matchesCategory = game.mode === 'singleplayer';
+    } else if (selectedCategory === 'multiplayer') {
+      matchesCategory = game.mode === 'multiplayer';
+    } else if (selectedCategory === 'nvious') {
+      matchesCategory = game.tags.includes('Nexus Original');
+    } else if (selectedCategory !== 'all') {
+      matchesCategory = game.category === selectedCategory;
+    }
+
     const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          game.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
@@ -48,9 +58,21 @@ const Storefront: React.FC = () => {
           />
           
           <div className="relative z-20 p-8 md:p-16 max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/50 text-primary text-sm font-mono animate-pulse">
-              <Zap size={14} />
-              <span>NEXUS SELECT // FEATURED</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/50 text-primary text-sm font-mono animate-pulse">
+                <Zap size={14} />
+                <span>NEXUS SELECT // FEATURED</span>
+              </div>
+              
+              {featuredGame.mode && (
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold font-mono uppercase tracking-wider shadow-[0_0_10px_rgba(0,0,0,0.5)] ${
+                  featuredGame.mode === 'multiplayer' 
+                    ? 'bg-fuchsia-500/30 border-fuchsia-500/50 text-fuchsia-200 shadow-fuchsia-500/20' 
+                    : 'bg-cyan-500/30 border-cyan-500/50 text-cyan-200 shadow-cyan-500/20'
+                }`}>
+                  <span>{featuredGame.mode === 'multiplayer' ? 'MULTIPLAYER' : 'SINGLE PLAYER'}</span>
+                </div>
+              )}
             </div>
             
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
@@ -60,14 +82,6 @@ const Storefront: React.FC = () => {
             <p className="text-lg text-gray-300 line-clamp-3 max-w-xl leading-relaxed">
               {featuredGame.description}
             </p>
-
-            <div className="flex flex-wrap gap-3">
-              {featuredGame.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-xs text-gray-400 uppercase tracking-wider">
-                  {tag}
-                </span>
-              ))}
-            </div>
 
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -88,7 +102,9 @@ const Storefront: React.FC = () => {
             {[
               { id: 'all', label: 'All Games', icon: LayoutGrid },
               { id: 'nvious', label: 'Nexus Originals', icon: Zap },
-              { id: 'ai', label: 'AI Tools', icon: Cpu },
+              { id: 'singleplayer', label: 'Single Player', icon: User },
+              { id: 'multiplayer', label: 'Multiplayer', icon: Users },
+              { id: 'ai', label: 'AI Games', icon: Cpu },
               { id: 'dev', label: 'Indie Games', icon: Gamepad2 },
             ].map((cat) => (
               <button

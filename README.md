@@ -2,7 +2,7 @@
 
 Welcome to NEXUS, a futuristic cyberpunk indie game storefront built with **Vite, React 19, and TypeScript**. This project aims to provide a free, open alternative to platforms like itch.io for indie game developers and players.
 
-> **Note:** This project was built with the assistance of AI tools.
+> **Note:** This project was built with the assistance of AI games.
 
 ## Features
 

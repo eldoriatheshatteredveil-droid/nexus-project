@@ -36,7 +36,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const incrementPlayTime = useStore((state) => state.incrementPlayTime);
   const faction = useStore((state) => state.faction);
   const isAuthenticated = useStore((state) => state.isAuthenticated);
+  const killCount = useStore((state) => state.killCount);
   const { user } = useAuth();
+
+  // Sync killCount to registered users for leaderboard
+  useEffect(() => {
+    if (!user) return;
+    
+    const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+    const userIndex = users.findIndex((u: any) => u.id === user.id);
+    
+    if (userIndex >= 0 && users[userIndex].kill_count !== killCount) {
+      users[userIndex].kill_count = killCount;
+      localStorage.setItem('nexus_registered_users', JSON.stringify(users));
+    }
+  }, [killCount, user]);
 
   // Check for faction selection - Only for authenticated users who haven't chosen yet
   useEffect(() => {

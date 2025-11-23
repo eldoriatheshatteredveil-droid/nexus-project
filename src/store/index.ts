@@ -242,9 +242,15 @@ export const useStore = create<StoreState>()(
     {
       name: 'nexus-storage', // unique name
       storage: createJSONStorage(() => localStorage),
-      version: 4, // Bump version to force migration/reset if needed
+      version: 6, // Bump version to force migration/reset if needed
       migrate: (persistedState: any, version) => {
         const state = persistedState as StoreState;
+        
+        // Refresh static games data while preserving user uploads
+        const staticIds = new Set(GAMES.map(g => g.id));
+        const userGames = (state.games || []).filter(g => !staticIds.has(g.id));
+        state.games = [...GAMES, ...userGames];
+
         // Ensure new fields exist if migrating from older version
         if (!state.credits) state.credits = 100;
         if (!state.inventory) state.inventory = [];

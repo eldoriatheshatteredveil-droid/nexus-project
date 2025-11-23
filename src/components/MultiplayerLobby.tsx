@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Trophy, Circle, Crown, MessageSquare, Play, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth, UserProfile } from '../hooks/useAuth';
 import { useStore } from '../store';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 
@@ -11,6 +11,7 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
   const { players, messages, queue, activeMatch, sendMessage, joinQueue, leaveQueue } = useMultiplayer(gameId);
   const [activeTab, setActiveTab] = useState<'lobby' | 'chat' | 'leaderboard'>('lobby');
   const [chatInput, setChatInput] = useState('');
+  const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const game = games.find(g => g.id === gameId);
@@ -22,6 +23,12 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
   useEffect(() => {
     if (activeTab === 'chat') {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    if (activeTab === 'leaderboard') {
+      const users = JSON.parse(localStorage.getItem('nexus_registered_users') || '[]');
+      // Sort by kill_count (descending)
+      const sorted = users.sort((a: any, b: any) => (b.kill_count || 0) - (a.kill_count || 0));
+      setLeaderboard(sorted.slice(0, 50)); // Top 50
     }
   }, [messages, activeTab]);
 
@@ -186,24 +193,33 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
               exit={{ opacity: 0, x: 10 }}
               className="space-y-2"
             >
-               {/* Mock Leaderboard for now */}
-               {[1, 2, 3, 4, 5].map((rank) => (
-                 <div key={rank} className="flex items-center gap-3 p-2 rounded bg-white/5 border border-white/5">
-                   <div className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded ${
-                     rank === 1 ? 'bg-yellow-500 text-black' :
-                     rank === 2 ? 'bg-gray-400 text-black' :
-                     rank === 3 ? 'bg-orange-700 text-black' :
-                     'bg-gray-800 text-gray-500'
-                   }`}>
-                     {rank}
+               {leaderboard.length === 0 ? (
+                 <div className="text-center text-gray-500 mt-10 text-xs">NO RANKED OPERATIVES</div>
+               ) : (
+                 leaderboard.map((player, index) => (
+                   <div key={player.id} className="flex items-center gap-3 p-2 rounded bg-white/5 border border-white/5">
+                     <div className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded ${
+                       index === 0 ? 'bg-yellow-500 text-black' :
+                       index === 1 ? 'bg-gray-400 text-black' :
+                       index === 2 ? 'bg-orange-700 text-black' :
+                       'bg-gray-800 text-gray-500'
+                     }`}>
+                       {index + 1}
+                     </div>
+                     <div className="flex-1">
+                       <div className={`text-sm font-bold ${
+                         player.faction === 'syndicate' ? 'text-purple-400' :
+                         player.faction === 'security' ? 'text-blue-400' :
+                         'text-gray-200'
+                       }`}>
+                         {player.username}
+                       </div>
+                       <div className="text-xs text-[#00ffd5] font-mono">{(player.kill_count || 0).toLocaleString()} KILLS</div>
+                     </div>
+                     {index === 0 && <Crown size={16} className="text-yellow-500" />}
                    </div>
-                   <div className="flex-1">
-                     <div className="text-sm font-bold text-gray-200">OPERATIVE_{999-rank}</div>
-                     <div className="text-xs text-[#00ffd5] font-mono">{(10000 - rank * 500).toLocaleString()} PTS</div>
-                   </div>
-                   {rank === 1 && <Crown size={16} className="text-yellow-500" />}
-                 </div>
-               ))}
+                 ))
+               )}
             </motion.div>
           )}
         </AnimatePresence>

@@ -71,6 +71,20 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
         
         {/* cover distortion / parallax overlay (mocked) */}
         <div className="absolute inset-0 pointer-events-none mix-blend-screen" style={{ background: 'linear-gradient(120deg, rgb(var(--color-primary) / 0.06), rgb(var(--color-secondary) / 0.04))' }} />
+      
+        {/* Game Mode Badge */}
+        {game.mode && (
+          <div className="absolute top-3 right-3 z-20">
+            <span className={`
+              text-[10px] font-bold px-2 py-1 rounded-sm border backdrop-blur-md uppercase tracking-wider shadow-lg
+              ${game.mode === 'multiplayer' 
+                ? 'bg-fuchsia-500/30 border-fuchsia-400 text-fuchsia-100 shadow-[0_0_15px_rgba(217,70,239,0.5)]' 
+                : 'bg-cyan-500/30 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(34,211,238,0.5)]'}
+            `}>
+              {game.mode === 'multiplayer' ? 'Multiplayer' : 'Single Player'}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="p-4 relative">
@@ -79,7 +93,7 @@ const GameCardHolographic: React.FC<Props> = ({ game, onClick }) => {
 
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{game.tags[0]}</span>
+            {/* Tags removed as per request */}
           </div>
           
           <button className="text-xs uppercase tracking-widest text-primary hover:text-white transition-colors">
