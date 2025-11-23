@@ -7,11 +7,14 @@ import { useMultiplayer } from '../hooks/useMultiplayer';
 
 const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
   const { user } = useAuth();
-  const { highScores } = useStore();
+  const { highScores, games } = useStore();
   const { players, messages, queue, activeMatch, sendMessage, joinQueue, leaveQueue } = useMultiplayer(gameId);
   const [activeTab, setActiveTab] = useState<'lobby' | 'chat' | 'leaderboard'>('lobby');
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const game = games.find(g => g.id === gameId);
+  const isSinglePlayer = game?.mode === 'singleplayer';
 
   const isInQueue = user && queue.includes(user.id);
   const isPlaying = !!activeMatch;
@@ -61,28 +64,30 @@ const MultiplayerLobby: React.FC<{ gameId: string }> = ({ gameId }) => {
       </div>
 
       {/* Queue Action Area */}
-      <div className="p-4 border-b border-[#00ffd5]/20 bg-black/40">
-        {isPlaying ? (
-          <div className="w-full py-3 bg-green-500/20 border border-green-500 text-green-500 rounded flex items-center justify-center gap-2 font-bold animate-pulse">
-            <Circle size={12} fill="currentColor" /> MATCH IN PROGRESS
-          </div>
-        ) : isInQueue ? (
-          <button
-            onClick={leaveQueue}
-            className="w-full py-3 bg-red-500/20 border border-red-500 text-red-500 rounded hover:bg-red-500/30 transition-all flex items-center justify-center gap-2 font-bold"
-          >
-            <X size={16} /> LEAVE QUEUE ({queue.indexOf(user?.id || '') + 1}/{queue.length})
-          </button>
-        ) : (
-          <button
-            onClick={joinQueue}
-            disabled={!user}
-            className="w-full py-3 bg-[#00ffd5]/20 border border-[#00ffd5] text-[#00ffd5] rounded hover:bg-[#00ffd5] hover:text-black transition-all flex items-center justify-center gap-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Play size={16} /> JOIN MATCHMAKING
-          </button>
-        )}
-      </div>
+      {!isSinglePlayer && (
+        <div className="p-4 border-b border-[#00ffd5]/20 bg-black/40">
+          {isPlaying ? (
+            <div className="w-full py-3 bg-green-500/20 border border-green-500 text-green-500 rounded flex items-center justify-center gap-2 font-bold animate-pulse">
+              <Circle size={12} fill="currentColor" /> MATCH IN PROGRESS
+            </div>
+          ) : isInQueue ? (
+            <button
+              onClick={leaveQueue}
+              className="w-full py-3 bg-red-500/20 border border-red-500 text-red-500 rounded hover:bg-red-500/30 transition-all flex items-center justify-center gap-2 font-bold"
+            >
+              <X size={16} /> LEAVE QUEUE ({queue.indexOf(user?.id || '') + 1}/{queue.length})
+            </button>
+          ) : (
+            <button
+              onClick={joinQueue}
+              disabled={!user}
+              className="w-full py-3 bg-[#00ffd5]/20 border border-[#00ffd5] text-[#00ffd5] rounded hover:bg-[#00ffd5] hover:text-black transition-all flex items-center justify-center gap-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Play size={16} /> JOIN MATCHMAKING
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar relative">

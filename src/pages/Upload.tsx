@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, AlignLeft, Save, Zap, Info } from 'lucide-react';
+import { Upload as UploadIcon, Image as ImageIcon, FileCode, Cpu, Tag, Type, AlignLeft, Save, Zap, Info, Users } from 'lucide-react';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
@@ -21,6 +21,7 @@ const Upload: React.FC = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'ai' | 'dev'>('ai');
   const [genre, setGenre] = useState(GENRES[0]);
+  const [gameMode, setGameMode] = useState<'singleplayer' | 'multiplayer'>('singleplayer');
   const [gameType, setGameType] = useState<'browser' | 'download'>('browser');
   const [gameUrl, setGameUrl] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
@@ -114,10 +115,11 @@ const Upload: React.FC = () => {
       payWhatYouWant: true,
       cover: coverImage || `https://source.unsplash.com/900x900/?cyberpunk,game&sig=${Date.now()}`,
       description: description || 'No description provided.',
-      tags: [genre, 'Indie', 'New Release'],
+      tags: [genre, 'Indie', 'New Release', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
       rating: 0,
       downloads: 0,
       category: category,
+      mode: gameMode,
       uploaderId: user.id,
       uploaderName: user.username,
       type: gameType,
@@ -139,10 +141,11 @@ const Upload: React.FC = () => {
     payWhatYouWant: true,
     cover: coverImage || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1000',
     description: description || 'System description pending...',
-    tags: [genre, category === 'ai' ? 'AI Generated' : 'Dev Made'],
+    tags: [genre, category === 'ai' ? 'AI Generated' : 'Dev Made', gameMode === 'singleplayer' ? 'Single Player' : 'Multiplayer'],
     rating: 5.0,
     downloads: 0,
-    category: category
+    category: category,
+    mode: gameMode
   };
 
   return (
@@ -339,6 +342,32 @@ const Upload: React.FC = () => {
                     value={genre}
                     onChange={(val) => setGenre(val)}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider select-none">
+                  <Users size={14} /> Game Mode
+                </label>
+                <div className="flex gap-4 bg-black/20 p-1 rounded-xl border border-white/5">
+                  <button
+                    type="button"
+                    onClick={() => setGameMode('singleplayer')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                      gameMode === 'singleplayer' ? 'bg-[#00ffd5] text-black' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    SINGLE PLAYER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGameMode('multiplayer')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                      gameMode === 'multiplayer' ? 'bg-[#00ffd5] text-black' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    MULTIPLAYER
+                  </button>
                 </div>
               </div>
 
