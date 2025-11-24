@@ -6,9 +6,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background-color: #050505;
+  background-color: #030508;
   background-image: 
-    radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 70%);
+    radial-gradient(circle at 50% 0%, #1a2c38 0%, #030508 80%),
+    radial-gradient(circle at 85% 30%, rgba(0, 255, 213, 0.04) 0%, transparent 25%),
+    radial-gradient(circle at 15% 70%, rgba(255, 102, 204, 0.04) 0%, transparent 25%);
   color: #ffffff;
   overflow-x: hidden;
   cursor: none; /* Hide default cursor globally */
@@ -45,8 +47,6 @@ h1, h2, h3, h4, h5, h6 {
   padding: 20px;
 }
 
-/* Removed unused .header and .footer classes to prevent layout confusion */
-
 .game-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -56,20 +56,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .game-card:hover {
   transform: scale(1.05);
-}
-
-.button {
-  background-color: #00ffcc;
-  border: none;
-  border-radius: 5px;
-  color: #000;
-  padding: 10px 15px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.button:hover {
-  background-color: #00cc99;
 }
 
 .dark-mode {
@@ -86,34 +72,30 @@ h1, h2, h3, h4, h5, h6 {
   .container {
     padding: 10px;
   }
-
-  .header, .footer {
-    padding: 15px;
-  }
 }
 
 /* NEXUS custom styles */
 .glassmorphic {
-  background: rgba(20, 20, 20, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px) saturate(180%);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background: rgba(20, 25, 35, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(200%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glassmorphic:hover {
-  background: rgba(30, 30, 30, 0.5);
-  border-color: rgba(var(--color-primary), 0.3);
-  box-shadow: 0 0 20px rgba(var(--color-primary), 0.1);
+  background: rgba(30, 35, 45, 0.6);
+  border-color: rgba(var(--color-primary), 0.4);
+  box-shadow: 0 0 25px rgba(var(--color-primary), 0.15);
 }
 
 .cyber-card {
-  background: linear-gradient(180deg, rgba(20, 20, 20, 0.6) 0%, rgba(10, 10, 10, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, rgba(25, 30, 40, 0.7) 0%, rgba(10, 15, 20, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 
 .cyber-card::before {
@@ -145,7 +127,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: breathe 3s ease-in-out infinite;
 }
 
-/* Scanline effect - Subtler */
+/* Scanline effect - Boosted */
 body::after {
   content: "";
   position: fixed;
@@ -157,16 +139,17 @@ body::after {
     to bottom,
     rgba(255, 255, 255, 0),
     rgba(255, 255, 255, 0) 50%,
-    rgba(0, 0, 0, 0.02) 50%,
-    rgba(0, 0, 0, 0.02)
+    rgba(0, 255, 213, 0.03) 50%,
+    rgba(0, 255, 213, 0.03)
   );
   background-size: 100% 4px;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.4;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
 }
 
-/* Vignette */
+/* Vignette - Softer */
 body::before {
   content: "";
   position: fixed;
@@ -174,7 +157,7 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0.8) 100%);
+  background: radial-gradient(circle, transparent 55%, rgba(3, 5, 8, 0.7) 100%);
   pointer-events: none;
   z-index: 9997;
 }
@@ -191,8 +174,6 @@ body::before {
 
 .game-card img{transition: transform 0.6s cubic-bezier(.2,.9,.2,1);}
 .game-card:hover img{transform: scale(1.06) translateZ(30px);}
-
-.container{max-width:1200px;margin:0 auto;padding:20px}
 
 @keyframes gradient-x {
   0%, 100% {

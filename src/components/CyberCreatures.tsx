@@ -26,11 +26,14 @@ const MAX_CREATURES = 15;
 
 const CyberCreatures: React.FC = () => {
   const [creatures, setCreatures] = useState<Creature[]>([]);
-  const { incrementKillCount, selectedOrbId, lastShotTimestamp, setLastShotTimestamp } = useStore();
+  const { incrementKillCount, selectedOrbId, lastShotTimestamp, setLastShotTimestamp, areCreaturesEnabled } = useStore();
   const { playGunshot, playGlitch, playClick } = useCyberSound(); // Added playClick for empty clicks/misses
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
   const mousePosRef = useRef({ x: 0, y: 0 });
+
+  // If disabled, don't render anything
+  if (!areCreaturesEnabled) return null;
 
   // Get current orb stats
   const currentOrb = ORBS.find(o => o.id === selectedOrbId) || ORBS[0];
@@ -124,6 +127,9 @@ const CyberCreatures: React.FC = () => {
 
   const update = (time: number) => {
     if (lastTimeRef.current !== undefined) {
+      // Throttle collision checks to every 10th frame (approx 6 times per second)
+      const shouldCheckCollision = Math.floor(time / 16) % 10 === 0;
+
       setCreatures((prev) => 
         prev
           .map((c) => {
@@ -173,69 +179,71 @@ const CyberCreatures: React.FC = () => {
             }
 
             // Collision Avoidance with Interactive Elements & Content
-            // ...existing code...
-            // We use elementsFromPoint to ignore the creature itself
-            // Convert document coordinates to viewport coordinates for elementFromPoint
-            const viewportX = newX - window.scrollX;
-            const viewportY = newY - window.scrollY;
-            
-            // Check slightly ahead of the creature to prevent clipping
-            const lookAhead = 20;
-            const angleRad = (c.rotation - 90) * (Math.PI / 180);
-            const probeX = viewportX + Math.cos(angleRad) * lookAhead;
-            const probeY = viewportY + Math.sin(angleRad) * lookAhead;
+            // Only check periodically to save performance
+            if (shouldCheckCollision) {
+              // We use elementsFromPoint to ignore the creature itself
+              // Convert document coordinates to viewport coordinates for elementFromPoint
+              const viewportX = newX - window.scrollX;
+              const viewportY = newY - window.scrollY;
+              
+              // Check slightly ahead of the creature to prevent clipping
+              const lookAhead = 20;
+              const angleRad = (c.rotation - 90) * (Math.PI / 180);
+              const probeX = viewportX + Math.cos(angleRad) * lookAhead;
+              const probeY = viewportY + Math.sin(angleRad) * lookAhead;
 
-            const elements = document.elementsFromPoint(probeX, probeY);
-            
-            // Filter out the creature itself and its container
-            const hitElement = elements.find(el => 
-              !el.hasAttribute('data-creature') && 
-              !el.closest('[data-creature]') &&
-              el.tagName !== 'HTML' &&
-              el.tagName !== 'BODY' &&
-              !el.id.includes('root') // Assuming root is the main container
-            );
+              const elements = document.elementsFromPoint(probeX, probeY);
+              
+              // Filter out the creature itself and its container
+              const hitElement = elements.find(el => 
+                !el.hasAttribute('data-creature') && 
+                !el.closest('[data-creature]') &&
+                el.tagName !== 'HTML' &&
+                el.tagName !== 'BODY' &&
+                !el.id.includes('root') // Assuming root is the main container
+              );
 
-            if (hitElement) {
-              // Define what constitutes an "obstacle"
-              // We want to avoid text, buttons, cards, headers, logos, etc.
-              const isObstacle = 
-                hitElement.matches?.(
-                  'button, a, input, select, textarea, label, ' +
-                  '.game-card, .modal, .glass-panel, .barrier, .invisible-wall, ' +
-                  'h1, h2, h3, h4, h5, h6, p, span, strong, b, i, em, mark, small, ' +
-                  'img, svg, canvas, video, audio, iframe, ' +
-                  'li, table, tr, td, th, ' +
-                  'header, footer, nav, aside, section, ' +
-                  '[role="button"], [role="link"], [role="checkbox"], [role="switch"], ' +
-                  'code, pre, blockquote, ' +
-                  '[class*="border-2"], [class*="border-4"], [class*="border-x"], [class*="border-y"]' // Try to catch visible borders
-                ) || 
-                hitElement.closest('button, a, .game-card, .modal, header, footer, nav, .barrier');
+              if (hitElement) {
+                // Define what constitutes an "obstacle"
+                // We want to avoid text, buttons, cards, headers, logos, etc.
+                const isObstacle = 
+                  hitElement.matches?.(
+                    'button, a, input, select, textarea, label, ' +
+                    '.game-card, .modal, .glass-panel, .barrier, .invisible-wall, ' +
+                    'h1, h2, h3, h4, h5, h6, p, span, strong, b, i, em, mark, small, ' +
+                    'img, svg, canvas, video, audio, iframe, ' +
+                    'li, table, tr, td, th, ' +
+                    'header, footer, nav, aside, section, ' +
+                    '[role="button"], [role="link"], [role="checkbox"], [role="switch"], ' +
+                    'code, pre, blockquote, ' +
+                    '[class*="border-2"], [class*="border-4"], [class*="border-x"], [class*="border-y"]' // Try to catch visible borders
+                  ) || 
+                  hitElement.closest('button, a, .game-card, .modal, header, footer, nav, .barrier');
 
-              if (isObstacle) {
-                // Bounce off with some randomness to prevent getting stuck
-                const bounceAngle = Math.random() * Math.PI / 2 - Math.PI / 4; // +/- 45 degrees randomness
-                
-                // Reflect velocity vector
-                // Simple reflection: v' = v - 2(v.n)n
-                // But we don't know the normal 'n' of the surface easily.
-                // So we just reverse and rotate slightly.
-                
-                newVx = -newVx;
-                newVy = -newVy;
-                
-                // Apply slight rotation to the bounce
-                const speed = Math.sqrt(newVx * newVx + newVy * newVy);
-                const currentAngle = Math.atan2(newVy, newVx);
-                const newAngle = currentAngle + (Math.random() - 0.5); // Random deviation
-                
-                newVx = Math.cos(newAngle) * speed;
-                newVy = Math.sin(newAngle) * speed;
+                if (isObstacle) {
+                  // Bounce off with some randomness to prevent getting stuck
+                  const bounceAngle = Math.random() * Math.PI / 2 - Math.PI / 4; // +/- 45 degrees randomness
+                  
+                  // Reflect velocity vector
+                  // Simple reflection: v' = v - 2(v.n)n
+                  // But we don't know the normal 'n' of the surface easily.
+                  // So we just reverse and rotate slightly.
+                  
+                  newVx = -newVx;
+                  newVy = -newVy;
+                  
+                  // Apply slight rotation to the bounce
+                  const speed = Math.sqrt(newVx * newVx + newVy * newVy);
+                  const currentAngle = Math.atan2(newVy, newVx);
+                  const newAngle = currentAngle + (Math.random() - 0.5); // Random deviation
+                  
+                  newVx = Math.cos(newAngle) * speed;
+                  newVy = Math.sin(newAngle) * speed;
 
-                newX = c.x + newVx * 3; // Move away immediately
-                newY = c.y + newVy * 3;
-                newRotation = (newAngle * 180 / Math.PI) + 90;
+                  newX = c.x + newVx * 3; // Move away immediately
+                  newY = c.y + newVy * 3;
+                  newRotation = (newAngle * 180 / Math.PI) + 90;
+                }
               }
             }
 

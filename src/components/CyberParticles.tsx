@@ -46,10 +46,10 @@ const CyberParticles: React.FC = () => {
         ctx.fill();
       });
 
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    let animationFrameId = requestAnimationFrame(animate);
 
     const handleResize = () => {
       width = window.innerWidth;
@@ -59,7 +59,10 @@ const CyberParticles: React.FC = () => {
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []);
 
   return (

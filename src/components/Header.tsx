@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCyberSound } from '../hooks/useCyberSound';
 import { useStore } from '../store';
 import { useAuth } from '../hooks/useAuth';
-import { Crosshair, Gamepad2, Upload, Info, Mail, User, LogIn, Shield, MessageSquare, ShoppingBag, Terminal, Network } from 'lucide-react';
+import { Crosshair, Gamepad2, Upload, Info, Mail, User, LogIn, Shield, MessageSquare, ShoppingBag, Terminal, Network, Bug } from 'lucide-react';
 import NexusLogo from './NexusLogo';
 import AuthModal from './AuthModal';
 import Chat from './Chat';
@@ -62,7 +62,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onOpenTerminal, onOpenBlackMarket }) => {
     const { playHover, playClick } = useCyberSound();
-    const { killCount, selectedAvatarId, xp, messages, credits, faction } = useStore();
+    const { killCount, selectedAvatarId, xp, messages, credits, faction, areCreaturesEnabled, toggleCreatures } = useStore();
     const { user } = useAuth();
     const [fireworksId, setFireworksId] = useState<number | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -168,6 +168,29 @@ const Header: React.FC<HeaderProps> = ({ onOpenTerminal, onOpenBlackMarket }) =>
                     <CyberNavLink to="/about" icon={<Info size={16} />}>About</CyberNavLink>
                     <CyberNavLink to="/contact" icon={<Mail size={16} />}>Contact</CyberNavLink>
                     
+                    {/* Creature Toggle */}
+                    <button
+                        onClick={() => { 
+                            playClick(); 
+                            toggleCreatures();
+                            setTimeout(() => window.location.reload(), 100);
+                        }}
+                        onMouseEnter={playHover}
+                        className="relative group px-3 py-2"
+                        title={areCreaturesEnabled ? "Disable Creatures" : "Enable Creatures"}
+                    >
+                        <div className={`absolute inset-0 transform -skew-x-12 border transition-all duration-300 pointer-events-none ${
+                            areCreaturesEnabled 
+                                ? 'bg-green-500/10 border-green-500/50 group-hover:bg-green-500/20' 
+                                : 'bg-red-500/10 border-red-500/50 group-hover:bg-red-500/20'
+                        }`} />
+                        <div className={`relative z-10 transition-colors pointer-events-none ${
+                            areCreaturesEnabled ? 'text-green-500' : 'text-red-500'
+                        }`}>
+                            <Bug size={18} className={areCreaturesEnabled ? "animate-pulse" : ""} />
+                        </div>
+                    </button>
+
                     {/* Terminal Toggle */}
                     <button
                         onClick={() => { playClick(); onOpenTerminal(); }}

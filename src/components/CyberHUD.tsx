@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Wifi, Cpu, Database, Radio } from 'lucide-react';
+import { Activity, Wifi, Cpu, Database, Radio, Bug } from 'lucide-react';
+import { useStore } from '../store';
 
 const HexColumn: React.FC<{ x: string; speed: number; delay: number }> = ({ x, speed, delay }) => {
   const [chars, setChars] = useState<string[]>([]);

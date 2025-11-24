@@ -12,4 +12,14 @@ export default defineConfig({
   server: {
     port: 3131,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'framer-motion'],
+          ui: ['lucide-react'],
+        },
+      },
+    },
+  },
 });

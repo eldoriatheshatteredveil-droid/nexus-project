@@ -11,7 +11,7 @@ import ProceduralAvatar from '../components/ProceduralAvatar';
 
 const Profile: React.FC = () => {
   const { user, signOut, updateUsername } = useAuth();
-  const { killCount, selectedOrbId, xp, playTime, selectedAvatarId, setSelectedAvatarId, addXp, setKillCount, faction, addCredits, inventory, equipItem, unequipItem, isEquipped } = useStore();
+  const { killCount, selectedOrbId, xp, playTime, selectedAvatarId, setSelectedAvatarId, addXp, setKillCount, faction, addCredits, inventory, equipItem, unequipItem, isEquipped, onlineUsers } = useStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'inventory' | 'settings' | 'network'>('overview');
   
   const [isEditingName, setIsEditingName] = useState(false);
@@ -692,31 +692,17 @@ const Profile: React.FC = () => {
                 </h3>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-xs font-mono text-green-500">LIVE MONITORING</span>
+                  <span className="text-xs font-mono text-green-500">LIVE MONITORING ({onlineUsers.length})</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
-                {(() => {
-                  // Fetch all users from storage service
-                  const allUsers = storage.getAllUsers();
-
-                  // Filter for "online" users (active in last 5 minutes)
-                  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-                  const onlineUsers = allUsers.filter((u: any) => {
-                    if (!u.last_seen) return false; // No timestamp = offline
-                    return new Date(u.last_seen) > fiveMinutesAgo;
-                  });
-
-                  if (onlineUsers.length === 0) {
-                    return (
-                      <div className="col-span-full text-center py-12 text-gray-500 font-mono">
-                        NO ACTIVE SIGNALS DETECTED
-                      </div>
-                    );
-                  }
-
-                  return onlineUsers.map((u: any) => (
+                {onlineUsers.length === 0 ? (
+                  <div className="col-span-full text-center py-12 text-gray-500 font-mono">
+                    SCANNING NETWORK...
+                  </div>
+                ) : (
+                  onlineUsers.map((u: any) => (
                     <div key={u.id} className="bg-black/60 border border-gray-800 p-4 rounded-lg flex items-center gap-4 hover:border-[#ff66cc]/50 transition-colors group">
                       <div className="relative">
                         <div className="w-12 h-12 rounded-lg bg-gray-900 overflow-hidden border border-gray-700 group-hover:border-[#ff66cc] transition-colors">
@@ -734,7 +720,7 @@ const Profile: React.FC = () => {
                           <h4 className="font-bold text-white font-orbitron truncate">{u.username}</h4>
                           {u.is_dev && <span className="text-[9px] bg-[#ff66cc]/20 text-[#ff66cc] px-1 rounded border border-[#ff66cc]/30">DEV</span>}
                         </div>
-                        <div className="text-xs text-gray-500 font-mono truncate">{u.email}</div>
+                        <div className="text-xs text-gray-500 font-mono truncate">{u.email || 'ANONYMOUS'}</div>
                         <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-gray-400">
                           <span>ID: {u.id.toString().slice(0, 6)}</span>
                           <span className="text-gray-600">|</span>
@@ -742,8 +728,8 @@ const Profile: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  ));
-                })()}
+                  ))
+                )}
               </div>
             </div>
           </motion.div>

@@ -9,7 +9,7 @@ import TwentyQuestionsGame from '../components/TwentyQuestionsGame';
 import NexusPong from '../components/NexusPong';
 import NexusBreakout from '../components/NexusBreakout';
 import VoidVanguard from '../components/VoidVanguard';
-import GameCursor from '../components/GameCursor';
+import CyberCursor from '../components/CyberCursor';
 import MultiplayerLobby from '../components/MultiplayerLobby';
 import CyberParticles from '../components/CyberParticles';
 import { useCyberSound } from '../hooks/useCyberSound';
@@ -74,7 +74,7 @@ const PlayGame: React.FC = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden cursor-none font-mono text-[#00ffd5]">
-      <GameCursor />
+      <CyberCursor />
       <CyberParticles />
       
       {/* AAA Background Layer */}

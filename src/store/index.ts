@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { GAMES, Game } from '../data/games';
 import { Mission, DAILY_MISSIONS } from '../data/missions';
 import { storage, UserGameState } from '../lib/storage';
+import { UserProfile } from '../hooks/useAuth';
 
 interface CartItem {
   game: Game;
@@ -93,7 +94,15 @@ interface StoreState {
   lastShotTimestamp: number;
   setLastShotTimestamp: (timestamp: number) => void;
 
-  // Storage Sync
+  // HUD State
+  areCreaturesEnabled: boolean;
+  toggleCreatures: () => void;
+
+  // Presence State
+  onlineUsers: UserProfile[];
+  setOnlineUsers: (users: UserProfile[]) => void;
+
+  // Storage Integration
   loadUserData: (userId: string) => void;
   saveUserData: () => void;
 }
@@ -122,6 +131,8 @@ export const useStore = create<StoreState>()(
       isAuthenticated: false,
       currentUserId: null,
       lastShotTimestamp: 0,
+      areCreaturesEnabled: true,
+      onlineUsers: [],
 
       addGame: (game) => set((state) => ({ games: [game, ...state.games] })),
       removeGame: (gameId) => set((state) => ({ games: state.games.filter(g => g.id !== gameId) })),
@@ -292,6 +303,8 @@ export const useStore = create<StoreState>()(
       setIsMusicPlaying: (isPlaying) => set({ isMusicPlaying: isPlaying }),
       setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
       setLastShotTimestamp: (timestamp) => set({ lastShotTimestamp: timestamp }),
+      toggleCreatures: () => set((state) => ({ areCreaturesEnabled: !state.areCreaturesEnabled })),
+      setOnlineUsers: (users) => set({ onlineUsers: users }),
 
       // --- Storage Integration ---
       loadUserData: (userId) => {
@@ -402,8 +415,10 @@ export const useStore = create<StoreState>()(
           factionScores: state.factionScores,
           missions: state.missions,
           highScores: state.highScores,
-          isAuthenticated: state.isAuthenticated
+          isAuthenticated: state.isAuthenticated,
+          areCreaturesEnabled: state.areCreaturesEnabled
           // Don't persist isMusicPlaying, it should reset on reload
+          // Don't persist onlineUsers, it's real-time
         };
       },
     }

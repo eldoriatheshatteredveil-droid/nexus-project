@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { storage } from '../lib/storage';
 import { Shield, Zap, Activity, Cpu, Lock, Users, Globe, Server } from 'lucide-react';
 import { useCyberSound } from '../hooks/useCyberSound';
+import NexusChatWidget from '../components/NexusChatWidget';
 
 const NexusAI: React.FC = () => {
   const { faction, factionScores } = useStore();
@@ -330,6 +331,9 @@ const NexusAI: React.FC = () => {
             </motion.div>
           </div>
         </div>
+
+        {/* Nexus Chat Widget - Specific to this page */}
+        <NexusChatWidget />
 
       </div>
     </div>

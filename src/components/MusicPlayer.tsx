@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, List, Music, Loader2, ChevronRight, Radio } from 'lucide-react';
-import { MUSIC_TRACKS, Track } from '../data/music';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Loader2, ChevronRight, Radio } from 'lucide-react';
+import { MUSIC_TRACKS } from '../data/music';
+import { motion } from 'framer-motion';
 import { useStore } from '../store';
 
 const MusicPlayer: React.FC = () => {
@@ -55,13 +55,17 @@ const MusicPlayer: React.FC = () => {
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(e => {
-          console.log("Audio play failed:", e);
+          // Auto-play policy or interruption
+          if (e.name !== 'AbortError') {
+            console.log("Audio play failed:", e);
+            setIsPlaying(false);
+          }
         });
       }
     } else if (audioRef.current) {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentTrackIndex]);
+  }, [isPlaying]);
 
   // Reset alternate index whenever track changes
   useEffect(() => {
@@ -70,16 +74,15 @@ const MusicPlayer: React.FC = () => {
       audioRef.current.src = currentTrack.url;
       // If we're supposed to be playing, attempt to start playback after switching src
       if (isPlaying) {
-        try {
-          audioRef.current.load();
-          const p = audioRef.current.play();
-          if (p && p.catch) {
-            p.catch(e => console.warn('Play after track change failed:', e));
-          }
-          setIsLoading(true);
-        } catch (e) {
-          console.warn('Error while auto-playing after track change', e);
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => {
+             if (e.name !== 'AbortError') {
+                console.warn('Play after track change failed:', e);
+             }
+          });
         }
+        setIsLoading(true);
       }
     }
   }, [currentTrackIndex]);
@@ -202,7 +205,7 @@ const MusicPlayer: React.FC = () => {
 
           <div className="relative w-32 h-32 rounded-full border-4 border-[#00ffd5]/30 flex items-center justify-center bg-black/50 shadow-neon group">
             <div className={`absolute inset-0 rounded-full border-2 border-[#00ffd5] border-dashed animate-[spin_10s_linear_infinite] ${isPlaying ? 'opacity-100' : 'opacity-30'}`} />
-            <Music size={40} className={`text-[#00ffd5] ${isPlaying ? 'animate-bounce' : ''}`} />
+            <Music size={40} className={`text-[#00ffd5] transition-transform duration-700 ${isPlaying ? 'scale-110' : 'scale-100'}`} />
           </div>
 
           <div className="space-y-1 z-10 w-full">

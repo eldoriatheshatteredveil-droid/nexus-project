@@ -105,5 +105,75 @@ export const MUSIC_TRACKS: Track[] = [
     url: '/music/space_boss_battle_mintodog.mp3',
     alternates: ['https://opengameart.org/sites/default/files/space_boss_battle_bpm175.mp3'],
     category: 'gaming'
+  },
+  {
+    id: '13',
+    title: 'Pondering the Cosmos',
+    artist: 'Ruskerdax',
+    url: 'https://opengameart.org/sites/default/files/Ruskerdax%20-%20Pondering%20the%20Cosmos_0.mp3',
+    category: 'chill'
+  },
+  {
+    id: '14',
+    title: 'CyberPunk Chronicles',
+    artist: 'Hitctrl',
+    url: 'https://opengameart.org/sites/default/files/CyberPunk_Chronicles.mp3',
+    category: 'cyberpunk'
+  },
+  {
+    id: '15',
+    title: 'Streetsound',
+    artist: 'p0ss',
+    url: 'https://opengameart.org/sites/default/files/streetsound_150_bpm.mp3',
+    category: 'gaming'
+  },
+  {
+    id: '16',
+    title: 'Bit Space',
+    artist: 'Beam Theory',
+    url: 'https://opengameart.org/sites/default/files/Bit%20Space%20%28loopable%29_3.mp3',
+    category: 'gaming'
+  },
+  {
+    id: '17',
+    title: 'Echelon',
+    artist: 'p0ss',
+    url: 'https://opengameart.org/sites/default/files/echelon.mp3',
+    category: 'cyberpunk'
+  },
+  {
+    id: '18',
+    title: 'Wind',
+    artist: 'p0ss',
+    url: 'https://opengameart.org/sites/default/files/wind.mp3',
+    category: 'chill'
+  },
+  {
+    id: '19',
+    title: 'Endless Cyber Runner',
+    artist: 'Eric Matyas',
+    url: 'https://opengameart.org/sites/default/files/Endless%20Cyber%20Runner_0.mp3',
+    category: 'gaming'
+  },
+  {
+    id: '20',
+    title: 'Neon Runner',
+    artist: 'Eric Matyas',
+    url: 'https://opengameart.org/sites/default/files/Neon%20Runner_0.mp3',
+    category: 'cyberpunk'
+  },
+  {
+    id: '21',
+    title: 'Thrust Sequence',
+    artist: 'Matthew Pablo',
+    url: 'https://opengameart.org/sites/default/files/Thrust%20Sequence_0.mp3',
+    category: 'gaming'
+  },
+  {
+    id: '22',
+    title: 'Future Noir',
+    artist: 'Eric Matyas',
+    url: 'https://opengameart.org/sites/default/files/Future%20Noir_0.mp3',
+    category: 'cyberpunk'
   }
 ];
